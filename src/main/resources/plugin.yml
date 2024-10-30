@@ -1,0 +1,10 @@
+main: com.ar.askgaming.bettershop.Main
+name: BetterShop
+api-version: 1.21
+version: 1
+author: AMONLY
+soft-depend: [Vault]
+commands:
+  shop:
+    description: Open the shop
+    aliases: [bs, bshop]
