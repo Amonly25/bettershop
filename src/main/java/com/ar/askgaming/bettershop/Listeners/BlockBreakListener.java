@@ -2,27 +2,25 @@ package com.ar.askgaming.bettershop.Listeners;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.block.BlockBreakEvent;
 
 import com.ar.askgaming.bettershop.Main;
 import com.ar.askgaming.bettershop.Shop;
 
-public class PlayerPickUpListener implements Listener{
+public class BlockBreakListener implements Listener{
 
     private Main plugin;
-    public PlayerPickUpListener(Main main) {
+    public BlockBreakListener(Main main) {
         plugin = main;
     }
     @EventHandler()
-    public void onPickUp(EntityPickupItemEvent e) {
-    
+    public void onBlockPlace(BlockBreakEvent e) {
 
         for (Shop shop : plugin.getShops().values()) {
-            if (shop.getItem().equals(e.getItem())) {
+            if (e.getBlock().equals(shop.getBlockShop())) {
                 e.setCancelled(true);
-                break;
+
             }
         }
-    }
-
+    } 
 }
