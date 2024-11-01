@@ -1,5 +1,6 @@
 package com.ar.askgaming.bettershop.Listeners;
 
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
@@ -18,18 +19,18 @@ public class InventoryMoveItemListener implements Listener {
     public void onMoveItem(InventoryMoveItemEvent e) {
 
 
-        for (Shop shop : plugin.getShops().values()) {
+        for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
             Inventory inv = shop.getInventory();
 
-            if (inv != e.getDestination()){
+            if (inv == e.getDestination()){
+                Bukkit.broadcast("InventoryMoveItemEvent detect on and shop inventory as destinacion, please check. " + shop.getBlockShop().getLocation().toString(), "bettershop.admin");
                 break;
             }
-            if (shop.getItemStack() != e.getItem()){ 
-                e.setCancelled(true);
-
+            if (inv == e.getSource()){
+                Bukkit.broadcast("InventoryMoveItemEvent detect on and shop inventory as source, please check. " + shop.getBlockShop().getLocation().toString(), "bettershop.admin");
+                
                 break;
             }
-
         }
     }
 }

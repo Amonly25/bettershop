@@ -16,8 +16,7 @@ public class PlayerPickUpListener implements Listener{
     @EventHandler()
     public void onPickUp(EntityPickupItemEvent e) {
     
-
-        for (Shop shop : plugin.getShops().values()) {
+        for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
             if (shop.getItem().equals(e.getItem())) {
                 e.setCancelled(true);
                 break;

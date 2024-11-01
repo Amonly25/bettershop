@@ -16,7 +16,7 @@ public class PlayerBlockListener implements Listener{
     @EventHandler()
     public void onBlockPlace(BlockPlaceEvent e) {
 
-        for (Shop shop : plugin.getShops().values()) {
+        for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
             if (e.getBlock().getLocation().getBlockX() == shop.getBlockShop().getLocation().getBlockX() &&
                 e.getBlock().getLocation().getBlockY()-1 == shop.getBlockShop().getLocation().getBlockY() &&
                 e.getBlock().getLocation().getBlockZ() == shop.getBlockShop().getLocation().getBlockZ()) {

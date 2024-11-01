@@ -16,7 +16,7 @@ public class BlockBreakListener implements Listener{
     @EventHandler()
     public void onBlockPlace(BlockBreakEvent e) {
 
-        for (Shop shop : plugin.getShops().values()) {
+        for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
             if (e.getBlock().equals(shop.getBlockShop())) {
                 e.setCancelled(true);
 

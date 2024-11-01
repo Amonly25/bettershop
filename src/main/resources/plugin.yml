@@ -3,7 +3,7 @@ name: BetterShop
 api-version: 1.21
 version: 1
 author: AMONLY
-soft-depend: [Vault]
+soft-depend: [Vault,DecentHolograms]
 commands:
   shop:
     description: Open the shop

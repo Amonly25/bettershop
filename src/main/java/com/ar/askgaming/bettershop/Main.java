@@ -1,23 +1,18 @@
 package com.ar.askgaming.bettershop;
 
-import java.util.HashMap;
-
-import org.bukkit.Location;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.ar.askgaming.bettershop.Listeners.BlockBreakListener;
+import com.ar.askgaming.bettershop.Listeners.InventoryInteractListener;
 import com.ar.askgaming.bettershop.Listeners.InventoryMoveItemListener;
 import com.ar.askgaming.bettershop.Listeners.PlayerBlockListener;
 import com.ar.askgaming.bettershop.Listeners.PlayerPickUpListener;
-
-import eu.decentsoftware.holograms.api.DecentHologramsAPI;
-import eu.decentsoftware.holograms.plugin.DecentHologramsPlugin;
 
 
 public class Main extends JavaPlugin {
 
     private BlockShopManager blockShopManager;
+    private DataHandler dataHandler;
 
     public  void onEnable() {
         
@@ -29,24 +24,35 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerBlockListener(this), this);
         getServer().getPluginManager().registerEvents(new BlockBreakListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryMoveItemListener(this), this);
+        getServer().getPluginManager().registerEvents(new InventoryInteractListener(this), this);
 
         blockShopManager = new BlockShopManager(this);
+        dataHandler = new DataHandler(this);
+
+        if (getServer().getPluginManager().getPlugin("DecentHolograms") == null) {
+            getLogger().severe("DecentHolograms not found, disabling plugin");
+            getServer().getPluginManager().disablePlugin(this);
+
+        }
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            getLogger().severe("Vault not found, disabling plugin");
+            getServer().getPluginManager().disablePlugin(this);
+
+        }
         
     }
     public void onDisable() {
         
-        for (Shop shop : shops.values()) {
-            shop.remove();
-        }
+        // for (Shop shop : getBlockShopManager().getShops().values()) {
+        //     shop.remove();
+        // }
     }
 
-    private HashMap<Location, Shop> shops = new HashMap<>();
-
-    public HashMap<Location, Shop> getShops() {
-        return shops;
-    }
     public BlockShopManager getBlockShopManager() {
         return blockShopManager;
+    }
+    public DataHandler getDataHandler() {
+        return dataHandler;
     }
     
 }
