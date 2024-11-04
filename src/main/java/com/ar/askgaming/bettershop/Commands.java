@@ -17,15 +17,18 @@ import org.bukkit.inventory.ItemStack;
 
 public class Commands implements TabExecutor {
 
-    private Main plugin;
-    public Commands(Main main) {
+    private BetterShop plugin;
+    public Commands(BetterShop main) {
         plugin = main;
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("create", "set_type", "set_price", "test_buy");
+            return Arrays.asList("create", "set", "sell", "remove");
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("set")) {
+            return Arrays.asList("title", "subtitle", "item");
         }
         return new ArrayList<>();
     }
@@ -47,33 +50,20 @@ public class Commands implements TabExecutor {
         Block targetBlock = p.getTargetBlock(transparentMaterials, 5);
         switch (args[0].toLowerCase()) {
 
-            case "set_buy":
-                handleSetType(p, args, targetBlock);
-                break;
-            case "test_buy":
-
-                if (plugin.getBlockShopManager().isShop(targetBlock)){
-                    Shop shop = plugin.getBlockShopManager().getByBlock(targetBlock);
-                    // si tiene dinero
-                    if (shop.hasStock()){
-                        for (ItemStack i : shop.get(5)) {
-                            p.getInventory().addItem(i);
-                        }
-                        p.sendMessage("items bought!");
-                    }
-                }
-                break;
-            case "set_price":
-                handleSetPrice(p, args, targetBlock);
-                break;
             case "create":
-                handleCreateShop(p, args,targetBlock);
+                handleCreateShop(p, args, targetBlock);
                 break;
+            case "set":
+                handleSetCommand(p, args, targetBlock);
+                break;
+            case "sell":
+                handleSellItemShop(p, args,targetBlock);
+                break;              
             case "open":
                 handleOpenByCmd(p, args);
                 break;
             case "remove":
-                handleOpenByCmd(p, args);
+                handleRemoveShop(p, args);
                 break;
             default:
                 break;
@@ -91,9 +81,16 @@ public class Commands implements TabExecutor {
             return;
         }
 
-        if (p.getInventory().getItemInMainHand() == null) {
+        if (p.getInventory().getItemInMainHand().getType() == Material.AIR) {
             p.sendMessage("Debe tener un item en la mano!");
             return;
+        }
+
+        for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
+            if (shop.getName().equalsIgnoreCase(args[1])) {
+                p.sendMessage("Ya hay una tienda con este nombre");
+                return;
+            }
         }
 
         if (targetBlock.getState() instanceof InventoryHolder) {
@@ -103,51 +100,39 @@ public class Commands implements TabExecutor {
         p.sendMessage("Debe ser un bloque con inventario!");
 
     }
+
+    //#region sellItemShop
+    public void handleSellItemShop(Player p, String[] args, Block targetBlock) {
+        if (args.length != 2) {
+            p.sendMessage("Usage: /shop sell <price_each>");
+            return;
+        }
+        Shop shop = plugin.getBlockShopManager().getByBlock(targetBlock);
+        if (shop != null) {
+            if (shop.getOnwer().equals(p) || p.hasPermission("shop.admin")) {
+                if (p.getInventory().getItemInMainHand().getType() == Material.AIR) {
+                    p.sendMessage("Debe tener un item en la mano!");
+                    return;
+                }
+                try {
+                    double d = Double.parseDouble(args[1]);
+                    ItemStack i = p.getInventory().getItemInMainHand().clone();
+                    if (plugin.getItemShopManager().addItemShop(shop,p.getInventory().getItemInMainHand(), d)){
+                        p.sendMessage("Has agregado "+ i.getAmount() + " items a la tienda, a un valor de " + d + " cada uno");
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    p.sendMessage(args[1] + " is not a valid number!");
+                }
+            }else{
+                p.sendMessage("You are not the owner of this shop!");
+            }
+        } else {
+            p.sendMessage("Shop not found!");
+        }
+    }
     
-    //#region SetPrice
-    public void handleSetPrice(Player p, String[] args, Block targetBlock){
-
-        if (args.length != 2) {
-            p.sendMessage("Usage: /shop set_price <price>");
-            return;
-        }
-        if (plugin.getBlockShopManager().isShop(targetBlock)){
-            Shop shop = plugin.getBlockShopManager().getByBlock(targetBlock);
-            if (shop.getOnwer().equals(p)){
-                try {
-                    shop.setPrice(Double.parseDouble(args[1]));
-                    p.sendMessage("Price set to " + args[1]);
-                } catch (NumberFormatException e) {
-                    p.sendMessage("Invalid price!");
-                }
-            }else{
-                p.sendMessage("You are not the owner of this shop!");
-            }
-        }
-    }
-
-    //#region setType
-    public void handleSetType(Player p, String[] args, Block targetBlock){
-
-        if (args.length != 2) {
-            p.sendMessage("Usage: /shop set_type <buy/sell>");
-            return;
-        }
-        if (plugin.getBlockShopManager().isShop(targetBlock)){
-            Shop shop = plugin.getBlockShopManager().getByBlock(targetBlock);
-            if (shop.getOnwer().equals(p)){
-                try {
-                    shop.setType(Shop.ShopType.valueOf(args[1].toUpperCase()));
-                    p.sendMessage("Type set to " + args[1]);
-                } catch (IllegalArgumentException e) {
-                    p.sendMessage("Invalid type, Usage: /shop set_type <buy/sell>");
-                }
-            }else{
-                p.sendMessage("You are not the owner of this shop!");
-            }
-        }
-    }
-
     //#region openByCmd
     public void handleOpenByCmd(Player p, String[] args){
 
@@ -163,6 +148,7 @@ public class Commands implements TabExecutor {
             p.sendMessage("Shop not found!");
         }
     }
+   
     //#region removeShop
     public void handleRemoveShop(Player p, String[] args){
 
@@ -180,6 +166,62 @@ public class Commands implements TabExecutor {
             }
         } else {
             p.sendMessage("Shop not found!");
+        }
+    }
+
+    //#region setCommand
+    private void handleSetCommand(Player p, String[] args, Block targetBlock) {
+
+        Shop shop = plugin.getBlockShopManager().getByBlock(targetBlock);
+
+        if (shop == null) {
+            p.sendMessage("Shop not found!");
+            return;
+        }
+        if (!shop.getOnwer().equals(p) || !p.hasPermission("shop.admin")) {
+            p.sendMessage("You dont have permission to do this!");
+            return;
+        }
+
+        StringBuilder descBuilder = new StringBuilder();
+        for (int i = 2; i < args.length; i++) {
+            descBuilder.append(args[i]).append(" ");
+        }
+        String text = descBuilder.toString().trim();
+        if (text.length() > 32) {
+            p.sendMessage("Must be 32 characters or less!");
+            return;
+        }
+
+        switch (args[1].toLowerCase()) {
+            case "item":
+                if (p.getInventory().getItemInMainHand().getType() == Material.AIR) {
+                    p.sendMessage("Debe tener un item en la mano!");
+                    return;
+                }
+                ItemStack item = p.getInventory().getItemInMainHand().clone();
+                item.setAmount(1);
+                shop.setItem(item);
+                break;
+            case "title":
+                p.sendMessage("Has establecido el titulo de la tienda a" + text);
+                shop.setTitle(text);
+                break;
+            case "subtitle":
+                p.sendMessage("Has establecido el subtitulo de la tienda a" + text);
+                shop.setSubtitle(text);
+                break;   
+            case "servershop":
+                if (!p.hasPermission("shop.admin")) {
+                    p.sendMessage("You dont have permission to set this!");
+                    return;
+                }
+                p.sendMessage("Has establecido la tienda como tienda del servidor");
+                shop.setServerShop(true);
+                break;                    
+            default:
+                p.sendMessage("Usage: /shop set <title/subtitle/item>");
+                break;
         }
     }
 }

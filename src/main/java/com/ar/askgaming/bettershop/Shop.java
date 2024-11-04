@@ -1,210 +1,211 @@
 package com.ar.askgaming.bettershop;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
-import eu.decentsoftware.holograms.api.DHAPI;
-import eu.decentsoftware.holograms.api.holograms.Hologram;
 
 public class Shop implements ConfigurationSerializable {
 
-    private Main plugin;
+    private BetterShop plugin = BetterShop.getPlugin(BetterShop.class);
 
     private Block blockShop;
     private World world;
     private Item item;
-    private ItemStack itemStack;
     private Inventory inventory;
-    private OfflinePlayer onwer;
-    private Hologram hologram;
-    private ShopType type;
-    private int stock = 0;
+    private OfflinePlayer owner;
+    private String title = "-";
+    private String subTitle = "-";
     private String name;
+    private ArmorStand armorStand;
+    private Location location;
+    private ItemStack itemStack;
+    private boolean isServerShop = false;
 
-    private double price = 0;
-
-    public enum ShopType {
-        BUY,
-        SELL
-    }
-
+    // Constructor created by command
     public Shop(Block targetBlock, ItemStack itemStack, Player owner, String name) {
-        plugin = Main.getPlugin(Main.class);
-
+        plugin.getBlockShopManager().getShops().put(location, this);
         blockShop = targetBlock;
         world = targetBlock.getWorld();
-        this.onwer = owner;
+        location = targetBlock.getLocation();
         this.itemStack = itemStack;
+        this.owner = owner;
         this.name = name;
 
-        InventoryHolder inventoryHolder = (InventoryHolder) blockShop.getState();
-        inventory = inventoryHolder.getInventory();
-
-        item = world.dropItem(blockShop.getLocation().add(0.5, 1, 0.5), itemStack);
-        hologram = DHAPI.createHologram(name, item.getLocation().add(0, 1.3, 0), true);
-        DHAPI.addHologramLine(hologram, "-");
-        DHAPI.addHologramLine(hologram, "Stock: " + stock + "- Price: " + price);
-
-        setItem();
-
-        // Control behavior of the shop before setting up
-        plugin.getBlockShopManager().getShops().put(blockShop.getLocation(), this);
-
+        initializeShop();
+        save();
     }
 
+    // Desrealization
     public Shop(Map<String, Object> map) {
         name = map.get("name").toString();
-        blockShop = (Block) map.get("block");
-        item = (Item) map.get("item");
-        itemStack = (ItemStack) map.get("itemStack");
-        onwer = plugin.getServer().getOfflinePlayer(UUID.fromString(map.get("onwer").toString()));
-        hologram = DHAPI.getHologram(map.get("hologram").toString());
-        type = ShopType.valueOf(map.get("type").toString());
-        stock = (int) map.get("stock");
-        price = (double) map.get("price");
-    
-    }
+        owner = plugin.getServer().getOfflinePlayer(UUID.fromString(map.get("owner").toString()));
+        title = map.get("title").toString();
+        subTitle = map.get("subtitle").toString();
+        location = (Location) map.get("location");
+        blockShop = location.getBlock();
+        world = location.getWorld();
+        itemStack = (ItemStack) map.get("itemstack");
+        isServerShop = Boolean.parseBoolean(map.get("isServerShop").toString());
 
-    public Entity getItem() {
-        return item;
+        if (blockShop.getState() instanceof InventoryHolder) {
+            inventory = ((InventoryHolder) blockShop.getState()).getInventory();
+        }
+
+        initializeShop();
     }
-    public Block getBlockShop() {
-        return blockShop;
-    }
-    public void remove() {
-        plugin.getDataHandler().getShopsConfig().set(name, null);
-        plugin.getDataHandler().saveShop();
+    private void initializeShop() {
         
-        item.remove();
-        hologram.delete();
-        plugin.getBlockShopManager().getShops().remove(blockShop.getLocation());
-    }
-    public void setItem(){
-
-        //item.setCustomNameVisible(true);
-        item.setUnlimitedLifetime(true);
-        item.setPersistent(true);
-        item.setInvulnerable(true);
-        item.setGravity(false);
-        item.setVelocity(item.getVelocity().multiply(0));
-    }
-    public Inventory getInventory() {
-        return inventory;
-    }
-    public OfflinePlayer getOnwer() {
-        return onwer;
-    }
-    public void setOnwer(Player onwer) {
-        this.onwer = onwer;
-    }
-    public ItemStack getItemStack() {
-        return itemStack;
-    }
-    public double getPrice() {
-        return price;
-    }
-    public void setStock(int stock) {
-        this.stock = stock;
-        updateHolo();
-    }
-    public void setPrice(double price) {
-        this.price = price;
-        updateHolo();
-    }
-
-    public void updateHolo(){
-        DHAPI.setHologramLine(hologram, 1,getHoloText("stock")+stock+" - "+getHoloText("price")+price);
-    }
-
-    public void setType(ShopType type) {
-        DHAPI.setHologramLine(hologram, 0,getHoloText(type.toString().toLowerCase()));
-        this.type = type;
-    }
-    public ShopType getType() {
-        return type;
-    }
-    public String getName() {
-        return name;
-    }
-    public int getStock() {
-        int stock = 0;
-
-        for (ItemStack itemStack : inventory.getContents()) {
-            if (itemStack != null) {
-                stock += itemStack.getAmount();
-            }
+        if (blockShop.getState() instanceof InventoryHolder) {
+            inventory = ((InventoryHolder) blockShop.getState()).getInventory();
         }
-        return stock;
-    }
 
-    public boolean hasStock(){
-        return stock > 0;
-    }
-    public List<ItemStack> get(int amount){
-        List<ItemStack> items = new ArrayList<>();
-        if (hasStock()){
-            for (ItemStack itemStack : inventory.getContents()) {
-                if (itemStack != null) {
-
-                    if (itemStack.getAmount() >= amount) {
-                        
-                        itemStack.setAmount(itemStack.getAmount() - amount);
-                        ItemStack cloned = itemStack.clone();
-                        cloned.setAmount(amount);
-                        items.add(itemStack); 
-                        break;
-
-                    } else {
-                        amount -= itemStack.getAmount();
-                        items.add(itemStack);
-                        inventory.remove(itemStack);
-                    }
-                }
-            }
-        }
-        return items;
-    }
-
-    private String getHoloText(String key){
-        return plugin.getConfig().getString("hologram."+key,"Undefined");
+        spawnItem();
+        setAmorStand();
     }
 
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
 
-        map.put("block", blockShop);
-        map.put("item", item);
-        map.put("itemStack", itemStack);
-        map.put("onwer", onwer.getUniqueId().toString());
-        map.put("hologram", hologram.getName());
-        map.put("type", type.toString());
-        map.put("stock", stock);
+        map.put("location", location);
+        map.put("itemstack", itemStack);
+        map.put("owner", owner.getUniqueId().toString());
+        map.put("title", title);
+        map.put("subtitle", subTitle);
         map.put("name", name);
-        map.put("price", price);
-        
+        map.put("isServerShop", String.valueOf(isServerShop));
+
         return map;
     }
-    public static Shop deserialize(Map<String, Object> map) {
-        return new Shop(map);
+                
+    public void remove() {
+        try {
+            plugin.getDataHandler().getShopsConfig().set(name, null);
+            plugin.getDataHandler().saveShop();
+    
+            for (ItemStack item : inventory.getContents()) {
+                if (item != null) {
+                    plugin.getItemShopManager().removeShopProperties(item);
+                }
+            }
+            
+            armorStand.remove();
+            item.remove();
+
+            plugin.getBlockShopManager().getShops().remove(blockShop.getLocation());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private void setAmorStand() {
+
+        if (armorStand != null) {
+            armorStand.remove();
+        }
+                    
+        armorStand = (ArmorStand) world.spawnEntity(location.clone().add(0.5, 1.5, 0.5), EntityType.ARMOR_STAND);
+        armorStand.setVisible(false); // Hacer el armor stand invisible
+        armorStand.setCustomName(title);
+        armorStand.setCustomNameVisible(true); // Mostrar el nombre del armor stand
+        armorStand.setGravity(false); // Evitar que el armor stand caiga
+        armorStand.setMarker(true); // Reducir el hitbox del armor stand
+    }
+
+    public void setItem(ItemStack toChangue){
+        itemStack = toChangue;
+        spawnItem();
+        save();
+    }
+    private void spawnItem(){
+        if (item != null) {
+            item.remove();
+        }
+        item = world.dropItem(location.clone().add(0.5, 1, 0.5), itemStack);
+        item.setUnlimitedLifetime(true);
+        item.setPersistent(true);
+        item.setInvulnerable(true);
+        item.setGravity(false);
+        item.setVelocity(item.getVelocity().multiply(0));
+        item.setCustomName(subTitle);
+        item.setCustomNameVisible(true);
+    }
+    public void setTitle(String title) {
+ 
+         armorStand.setCustomName(title);
+         this.title = title;
+         save();
+    }
+    public void setSubtitle(String description) {
+
+        item.setCustomName(description);
+        this.subTitle = description;
+        save();
     }
     public void save() {
         plugin.getDataHandler().getShopsConfig().set(name, this);
         plugin.getDataHandler().saveShop();
     }
+    public Inventory getInventory() {
+        return inventory;
+    }
+    public OfflinePlayer getOnwer() {
+        return owner;
+    }
+    public void setOnwer(Player onwer) {
+        this.owner = onwer;
+    }
+    public ItemStack getItemStack() {
+        return itemStack;
+    }
 
+    public String getName() {
+        return name;
+    }
+    public Entity getItem() {
+        return item;
+    }
+    public Block getBlockShop() {
+        return blockShop;
+    }
+
+    public static Shop deserialize(Map<String, Object> map) {
+        
+        return new Shop(map);
+    }
+    public String getTitle() {
+        return title;
+    }
+
+    public String getSubtitle() {
+        return subTitle;
+    }
+
+    public ArmorStand getArmorStand() {
+        return armorStand;
+    }
+    
+    public boolean isServerShop() {
+        return isServerShop;
+    }
+
+    public void setServerShop(boolean isServerShop) {
+        this.isServerShop = isServerShop;
+        save();
+    }
 }

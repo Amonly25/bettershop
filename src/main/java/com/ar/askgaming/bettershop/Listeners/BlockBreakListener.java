@@ -4,13 +4,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
-import com.ar.askgaming.bettershop.Main;
+import com.ar.askgaming.bettershop.BetterShop;
 import com.ar.askgaming.bettershop.Shop;
 
 public class BlockBreakListener implements Listener{
 
-    private Main plugin;
-    public BlockBreakListener(Main main) {
+    private BetterShop plugin;
+    public BlockBreakListener(BetterShop main) {
         plugin = main;
     }
     @EventHandler()

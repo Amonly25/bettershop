@@ -4,13 +4,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 
-import com.ar.askgaming.bettershop.Main;
+import com.ar.askgaming.bettershop.BetterShop;
 import com.ar.askgaming.bettershop.Shop;
 
 public class PlayerPickUpListener implements Listener{
 
-    private Main plugin;
-    public PlayerPickUpListener(Main main) {
+    private BetterShop plugin;
+    public PlayerPickUpListener(BetterShop main) {
         plugin = main;
     }
     @EventHandler()

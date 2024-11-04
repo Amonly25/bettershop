@@ -9,7 +9,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 public class BlockShopManager {
 
-    private Main plugin;
+    private BetterShop plugin;
 
     private HashMap<Location, Shop> shops = new HashMap<>();
 
@@ -17,7 +17,7 @@ public class BlockShopManager {
         return shops;
     }
 
-    public BlockShopManager(Main main) {
+    public BlockShopManager(BetterShop main) {
         plugin = main;
 
         FileConfiguration config = plugin.getDataHandler().getShopsConfig();
@@ -62,4 +62,5 @@ public class BlockShopManager {
         }
         return null;
     }
+    
 }

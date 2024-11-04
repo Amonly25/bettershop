@@ -1,74 +1,83 @@
 package com.ar.askgaming.bettershop.Listeners;
 
-import java.util.List;
-
-import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
-import com.ar.askgaming.bettershop.Main;
+import com.ar.askgaming.bettershop.BetterShop;
 import com.ar.askgaming.bettershop.Shop;
 
 public class InventoryInteractListener implements Listener{
 
-    private Main plugin;
-    public InventoryInteractListener(Main main) {
+    private BetterShop plugin;
+    public InventoryInteractListener(BetterShop main) {
         plugin = main;
     }
     @EventHandler()
-    public void onMoveItem(InventoryInteractEvent e) {
+    public void onClickInventory(InventoryClickEvent e) {
+       
+        ItemStack i = e.getCurrentItem();
+
+        if (i == null || i.getType() == Material.AIR) {
+            return;
+        }
 
         for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
             Inventory inv = shop.getInventory();
 
-            if (inv == e.getInventory()){
+            if (inv.equals(e.getClickedInventory()) || inv.equals(e.getInventory())){
+                
+                //Is shop! cancel any event
+                e.setCancelled(true);
 
                 if (e.getWhoClicked() instanceof Player){
-                    Player player = (Player) e.getWhoClicked();
-                    if (shop.getOnwer() == player){
 
-                        Bukkit.broadcast("Owner interact in his inventory shop", "admin");
-                        
-                        //REVISAR ESTO
+                    Player p = (Player) e.getWhoClicked();
 
-                        if (e instanceof InventoryClickEvent){
-                           ItemStack i = ((InventoryClickEvent)e).getCurrentItem();
-                           if (i != null){
+                    if (plugin.getItemShopManager().isItemShop(i)){
 
-                                if (i.getType() != shop.getItemStack().getType()){
-                                    Bukkit.broadcast("Item clicked is not the same as the shop item", "admin");
-                                    e.setCancelled(true);
-                                    break;
-                                }
-
-                               Bukkit.broadcast("Item clicked: " + i.getType().toString(), "admin");
-                               ItemMeta meta = i.getItemMeta();
-                                 if (meta != null){
-                                    List<String> list = List.of("Price: " + shop.getPrice(), "Usar: /pshop buy");
-                                      meta.setLore(list);
-                                }
-                            }
+                        //Return is player has inventory full
+                        if (e.getWhoClicked().getInventory().firstEmpty() == -1){
+                            e.getWhoClicked().sendMessage("§cYour inventory is full");
+                            return;
                         }
-                        shop.updateHolo();
-                        break;
-                    } else {
-                        Bukkit.broadcast("Another player attemp to interact shop inv, event canceled", "admin");
-                        e.setCancelled(true);
-                        break;
 
+                        // Check is owner and cancel item
+                        if (shop.getOnwer().equals(p)){     
+                            plugin.getItemShopManager().removeShopProperties(i);
+                            p.getInventory().addItem(i.clone());
+                            i.setAmount(0);
+                            p.sendMessage("Has cancelado un item con exito.");
+                            return;
+                        }
+
+                        // Process user action to buy item
+                        int amount;
+
+                        switch (e.getClick()) {
+                            case RIGHT:
+                                amount = 1;
+                                break;
+                            case SHIFT_RIGHT:
+                                amount = i.getAmount();
+                                break;
+                            default:
+                                return;
+                        }
+                        
+                        if (shop.isServerShop()) {
+                            plugin.getItemShopManager().buyItemToServer(p, i, amount);
+                        } else {
+                            plugin.getItemShopManager().buyItemToPlayer(shop.getOnwer(), p, i, amount);
+                        }
                     }
-                } else {
-                    Bukkit.broadcast("Another human entity tried to open a shop, wtf?", "admin");
-                    e.setCancelled(true);
-                    break;
                 }
             }
-        }
+        }   
     }
 }
