@@ -9,13 +9,13 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import com.ar.askgaming.bettershop.BetterShop;
+import com.ar.askgaming.bettershop.BlockShop;
 import com.ar.askgaming.bettershop.Shop;
 
 public class InventoryInteractListener implements Listener{
 
-    private BetterShop plugin;
-    public InventoryInteractListener(BetterShop main) {
+    private BlockShop plugin;
+    public InventoryInteractListener(BlockShop main) {
         plugin = main;
     }
     @EventHandler()

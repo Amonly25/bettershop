@@ -6,13 +6,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.inventory.Inventory;
 
-import com.ar.askgaming.bettershop.BetterShop;
+import com.ar.askgaming.bettershop.BlockShop;
 import com.ar.askgaming.bettershop.Shop;
 
 public class InventoryMoveItemListener implements Listener {
 
-    private BetterShop plugin;
-    public InventoryMoveItemListener(BetterShop main) {
+    private BlockShop plugin;
+    public InventoryMoveItemListener(BlockShop main) {
         plugin = main;
     }
     @EventHandler()

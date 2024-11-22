@@ -8,13 +8,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
-import com.ar.askgaming.bettershop.BetterShop;
+import com.ar.askgaming.bettershop.BlockShop;
 import com.ar.askgaming.bettershop.Shop;
 
 public class PlayerBlockListener implements Listener{
 
-    private BetterShop plugin;
-    public PlayerBlockListener(BetterShop main) {
+    private BlockShop plugin;
+    public PlayerBlockListener(BlockShop main) {
         plugin = main;
     }
     @EventHandler()

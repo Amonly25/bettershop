@@ -1,5 +1,9 @@
-hologram:
-  sell: "§aSell"
-  buy: "§bBuy"
-  stock: "§6Stock: "
-  price: "§ePrice: "
+
+item_shop:
+  price_text: "§7Price: "
+  lore:
+  - "§7Right click to buy 1"
+  - "§7Shift + Right click to buy all"
+  - ""
+  - "Owner: Click to cancel"
+

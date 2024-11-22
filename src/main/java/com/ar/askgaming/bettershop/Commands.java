@@ -17,8 +17,8 @@ import org.bukkit.inventory.ItemStack;
 
 public class Commands implements TabExecutor {
 
-    private BetterShop plugin;
-    public Commands(BetterShop main) {
+    private BlockShop plugin;
+    public Commands(BlockShop main) {
         plugin = main;
     }
 
@@ -83,6 +83,11 @@ public class Commands implements TabExecutor {
 
         if (p.getInventory().getItemInMainHand().getType() == Material.AIR) {
             p.sendMessage("Debe tener un item en la mano!");
+            return;
+        }
+
+        if (!plugin.getBlockShopManager().hasPermissionAtBlockLocation(p, targetBlock)){
+            p.sendMessage("No tienes permiso para hacer esto aqui!");
             return;
         }
 
@@ -172,6 +177,10 @@ public class Commands implements TabExecutor {
     //#region setCommand
     private void handleSetCommand(Player p, String[] args, Block targetBlock) {
 
+        if (args.length < 3) {
+            p.sendMessage("Usage: /shop set <title/subtitle/item>");
+            return;
+        }
         Shop shop = plugin.getBlockShopManager().getByBlock(targetBlock);
 
         if (shop == null) {

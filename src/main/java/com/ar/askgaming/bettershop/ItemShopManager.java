@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -12,21 +13,21 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import net.milkbowl.vault.economy.EconomyResponse;
-
 public class ItemShopManager{
 
-    private BetterShop plugin = BetterShop.getPlugin(BetterShop.class);
+    private BlockShop plugin = BlockShop.getPlugin(BlockShop.class);
 
-    private List<String> itemShopLore = List.of(
-        "§7Price: §e{price} c/u",
-        "§7Right click to buy 1",
-        "§7Shift + Right click to buy all",
-        "",
-        "Owner: Click to cancel"
-    );
+    private List<String> itemShopLore;
+    private String priceText;
 
     private NamespacedKey key = new NamespacedKey(plugin, "bettershop.item_price");
+
+    public ItemShopManager() {
+        itemShopLore = plugin.getConfig().getStringList("item_shop.lore");
+        priceText = plugin.getConfig().getString("item_shop.price_text","Price:");
+        itemShopLore.add(0, priceText + "{price}");
+
+    }
 
     public boolean isItemShop(ItemStack itemStack) {
 
@@ -43,10 +44,14 @@ public class ItemShopManager{
     public void setShopProperties(ItemStack itemStack, double price) {
 
         ItemMeta meta = itemStack.getItemMeta();
-
         meta.getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, price);
-
-
+        itemStack.setItemMeta(meta);
+        setShopLore(itemStack);
+        
+    }
+    public void setShopLore(ItemStack itemStack){
+        double price = getPrice(itemStack);
+        ItemMeta meta = itemStack.getItemMeta();
         if (meta.hasLore()) {
             List<String> lore = meta.getLore();
             for (int i = 0; i < itemShopLore.size(); i++) {
@@ -60,18 +65,22 @@ public class ItemShopManager{
             }
             meta.setLore(lore);
         }
-
         itemStack.setItemMeta(meta);
-        
     }
+    //#region removeProps
     public void removeShopProperties(ItemStack itemStack) {
         ItemMeta meta = itemStack.getItemMeta();
         meta.getPersistentDataContainer().remove(key);
+        itemStack.setItemMeta(meta);
+        removeShopLore(itemStack);
+    }
+    public void removeShopLore(ItemStack itemStack) {
+        ItemMeta meta = itemStack.getItemMeta();
 
         if (meta.hasLore()) {
             List<String> lore = meta.getLore();
             Predicate<String> isSimilar = str ->
-            str.startsWith("§7Price:") || itemShopLore.contains(str);
+            str.startsWith(priceText) || itemShopLore.contains(str);
 
             // Remove similar elements from list2
              lore.removeIf(isSimilar);
@@ -83,7 +92,7 @@ public class ItemShopManager{
     public double getPrice(ItemStack i) {
         return i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.DOUBLE);
     }
-
+    //#region additem
     public boolean addItemShop(Shop shop, ItemStack itemInMainHand, double price) {
         int slot = shop.getInventory().firstEmpty();
 
@@ -101,23 +110,8 @@ public class ItemShopManager{
     //#region buyItem
     private void buyItem(Player buyer, ItemStack item, int amount, @Nullable OfflinePlayer seller) {
         double price = plugin.getItemShopManager().getPrice(item) * amount;
-    
-        if (plugin.getEconomy().getBalance(buyer) < price) {
-            buyer.sendMessage("§cNo tienes suficiente dinero");
-            return;
-        }
-    
-        EconomyResponse response;
-        if (seller != null) {
-            response = plugin.getRealisticEconomy().getEconomyService().playerPayPlayer(buyer.getUniqueId(), seller.getUniqueId(), price);
-        } else {
-            response = plugin.getRealisticEconomy().getServerBank().deposit(price);
-            if (response.transactionSuccess()) {
-                plugin.getEconomy().withdrawPlayer(buyer, price);
-            }
-        }
-    
-        if (!response.transactionSuccess()) {
+        
+        if (!processPayment(buyer, seller, price)) {
             buyer.sendMessage("§cError al comprar el item");
             return;
         }
@@ -145,4 +139,48 @@ public class ItemShopManager{
         buyItem(buyer, item, amount, null);
     }
     //#endregion
+    private boolean processPayment(Player buyer, OfflinePlayer seller, double price) {
+
+        if (plugin.getRealisticEconomy()!= null) {
+            return processRealisticPayment(buyer, seller, price);
+
+        } else if (plugin.getEconomy() != null) {
+            return processVaultPayment(buyer, seller, price);
+        } 
+        else {
+            plugin.getLogger().warning("No economy plugin found, players can't buy items");
+        }
+        
+        return false;
+    }
+    private boolean processRealisticPayment(Player buyer, OfflinePlayer seller, double price) {
+        boolean transactionSuccess = false;
+        if (seller != null) {
+            transactionSuccess = plugin.getRealisticEconomy().getEconomyService().playerPayPlayer(buyer.getUniqueId(), seller.getUniqueId(), price);
+            Player player = seller.getPlayer();
+            if (transactionSuccess && player.isOnline()) {
+                player.sendMessage("§aHas vendido un item por " + price + " a " + buyer.getName());
+            }
+
+        } else {
+            transactionSuccess = plugin.getRealisticEconomy().getServerBank().depositFromPlayerToServer(buyer.getUniqueId(), price);
+        }
+        return transactionSuccess;
+    }
+    private boolean processVaultPayment(Player buyer,OfflinePlayer seller, double price) {
+        if (plugin.getEconomy().getBalance(buyer) < price) {
+            buyer.sendMessage("§cNo tienes suficiente dinero");
+            return false;
+        }
+        plugin.getEconomy().withdrawPlayer(buyer, price);
+        if (seller != null) {
+            plugin.getEconomy().depositPlayer(seller, price);
+            Player player = seller.getPlayer();
+            if (player != null) {
+                player.sendMessage("§aHas vendido un item por " + price + " a " + buyer.getName());
+            }
+        }
+        return true;
+    }
+    
 }

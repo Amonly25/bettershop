@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.ar.askgaming.bettershop</groupId>
-    <artifactId>bettershop</artifactId>
+    <artifactId>blockshop</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -37,11 +37,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.ar.askgaming</groupId>
-            <artifactId>RealisticEconomy</artifactId>
-            <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/realisticeconomy-1.0-SNAPSHOT.jar</systemPath>
+            <groupId>com.ar.asgaming.realisticeconomy</groupId>
+            <artifactId>realisticeconomy</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
         
         <dependency>

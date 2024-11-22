@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -17,11 +19,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 
 public class Shop implements ConfigurationSerializable {
 
-    private BetterShop plugin = BetterShop.getPlugin(BetterShop.class);
+    private BlockShop plugin = BlockShop.getPlugin(BlockShop.class);
 
     private Block blockShop;
     private World world;
@@ -60,11 +64,11 @@ public class Shop implements ConfigurationSerializable {
         blockShop = location.getBlock();
         world = location.getWorld();
         itemStack = (ItemStack) map.get("itemstack");
-        isServerShop = Boolean.parseBoolean(map.get("isServerShop").toString());
-
-        if (blockShop.getState() instanceof InventoryHolder) {
-            inventory = ((InventoryHolder) blockShop.getState()).getInventory();
+        if (map.get("itemstack") != null) {
+            itemStack = (ItemStack) map.get("itemstack");
         }
+
+        isServerShop = Boolean.parseBoolean(map.get("isServerShop").toString());
 
         initializeShop();
     }
@@ -120,6 +124,7 @@ public class Shop implements ConfigurationSerializable {
         }
                     
         armorStand = (ArmorStand) world.spawnEntity(location.clone().add(0.5, 1.5, 0.5), EntityType.ARMOR_STAND);
+        plugin.protectedEntities.add(armorStand);
         armorStand.setVisible(false); // Hacer el armor stand invisible
         armorStand.setCustomName(title);
         armorStand.setCustomNameVisible(true); // Mostrar el nombre del armor stand
@@ -129,6 +134,12 @@ public class Shop implements ConfigurationSerializable {
 
     public void setItem(ItemStack toChangue){
         itemStack = toChangue;
+
+        NamespacedKey key = new NamespacedKey(plugin, "bettershop.item_price");
+        ItemMeta meta = itemStack.getItemMeta();
+        meta.getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, 0.0);
+        itemStack.setItemMeta(meta);
+  
         spawnItem();
         save();
     }
@@ -137,6 +148,7 @@ public class Shop implements ConfigurationSerializable {
             item.remove();
         }
         item = world.dropItem(location.clone().add(0.5, 1, 0.5), itemStack);
+        plugin.protectedEntities.add(item);
         item.setUnlimitedLifetime(true);
         item.setPersistent(true);
         item.setInvulnerable(true);
@@ -144,6 +156,7 @@ public class Shop implements ConfigurationSerializable {
         item.setVelocity(item.getVelocity().multiply(0));
         item.setCustomName(subTitle);
         item.setCustomNameVisible(true);
+
     }
     public void setTitle(String title) {
  

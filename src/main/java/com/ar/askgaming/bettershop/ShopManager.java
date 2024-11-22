@@ -3,13 +3,19 @@ package com.ar.askgaming.bettershop;
 import java.util.HashMap;
 import java.util.Set;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.inventory.ItemStack;
 
-public class BlockShopManager {
+import net.md_5.bungee.api.chat.hover.content.Item;
 
-    private BetterShop plugin;
+public class ShopManager {
+
+    private BlockShop plugin;
 
     private HashMap<Location, Shop> shops = new HashMap<>();
 
@@ -17,8 +23,10 @@ public class BlockShopManager {
         return shops;
     }
 
-    public BlockShopManager(BetterShop main) {
+    public ShopManager(BlockShop main) {
         plugin = main;
+        ItemShopManager itemShopManager = new ItemShopManager();
+        plugin.setItemShopManager(itemShopManager);
 
         FileConfiguration config = plugin.getDataHandler().getShopsConfig();
         Set<String> protectionKeys = config.getKeys(false);
@@ -31,6 +39,12 @@ public class BlockShopManager {
 
                 // Guardar cada Protection en el mapa con su clave
                 shops.put(shop.getBlockShop().getLocation(), shop);
+
+                for (ItemStack item : shop.getInventory().getContents()) {
+                    if (item != null) {
+                        itemShopManager.setShopLore(item);
+                    }
+                }
             }
         }
     }
@@ -61,6 +75,21 @@ public class BlockShopManager {
             }
         }
         return null;
+    }
+    public boolean hasPermissionAtBlockLocation(Player p, Block block) {
+
+        BlockBreakEvent event = new BlockBreakEvent(block, p);
+
+        // Llama al evento
+        Bukkit.getServer().getPluginManager().callEvent(event);
+
+        if (!event.isCancelled()) {
+            event.setCancelled(true);
+            return true;
+        } else {
+            return false;
+        }
+        
     }
     
 }

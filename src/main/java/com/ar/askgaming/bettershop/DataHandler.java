@@ -18,7 +18,7 @@ public class DataHandler {
         return shopsConfig;
     }
 
-    public DataHandler(BetterShop main) {
+    public DataHandler(BlockShop main) {
         shopsFile = new File(main.getDataFolder(), "shops.yml");
         
         if (!shopsFile.exists()) {
