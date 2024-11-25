@@ -20,6 +20,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 
 
@@ -49,6 +51,7 @@ public class Shop implements ConfigurationSerializable {
         this.itemStack = itemStack;
         this.owner = owner;
         this.name = name;
+        this.title = name;
 
         initializeShop();
         save();
@@ -96,7 +99,8 @@ public class Shop implements ConfigurationSerializable {
 
         return map;
     }
-                
+            
+    //#region remove
     public void remove() {
         try {
             plugin.getDataHandler().getShopsConfig().set(name, null);
@@ -117,6 +121,7 @@ public class Shop implements ConfigurationSerializable {
             e.printStackTrace();
         }
     }
+    //#region setAmorStand
     private void setAmorStand() {
 
         if (armorStand != null) {
@@ -131,14 +136,9 @@ public class Shop implements ConfigurationSerializable {
         armorStand.setGravity(false); // Evitar que el armor stand caiga
         armorStand.setMarker(true); // Reducir el hitbox del armor stand
     }
-
+    //#region setItem
     public void setItem(ItemStack toChangue){
         itemStack = toChangue;
-
-        NamespacedKey key = new NamespacedKey(plugin, "bettershop.item_price");
-        ItemMeta meta = itemStack.getItemMeta();
-        meta.getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, 0.0);
-        itemStack.setItemMeta(meta);
   
         spawnItem();
         save();
@@ -147,6 +147,20 @@ public class Shop implements ConfigurationSerializable {
         if (item != null) {
             item.remove();
         }
+        
+        for (Entity entity : world.getNearbyEntities(blockShop.getLocation(), 1, 2, 1)) {
+            if (entity instanceof Item) {
+                // Eliminar el ítem duplicado
+                entity.remove();
+            }
+        }
+        
+
+        NamespacedKey key = new NamespacedKey(plugin, "bettershop.item_price");
+        ItemMeta meta = itemStack.getItemMeta();
+        meta.getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, 0.0);
+        itemStack.setItemMeta(meta);
+
         item = world.dropItem(location.clone().add(0.5, 1, 0.5), itemStack);
         plugin.protectedEntities.add(item);
         item.setUnlimitedLifetime(true);
@@ -156,6 +170,8 @@ public class Shop implements ConfigurationSerializable {
         item.setVelocity(item.getVelocity().multiply(0));
         item.setCustomName(subTitle);
         item.setCustomNameVisible(true);
+
+
 
     }
     public void setTitle(String title) {

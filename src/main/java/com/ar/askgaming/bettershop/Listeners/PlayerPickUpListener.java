@@ -7,8 +7,6 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import com.ar.askgaming.bettershop.BlockShop;
 import com.ar.askgaming.bettershop.Shop;
 
-import net.md_5.bungee.api.chat.hover.content.Item;
-
 public class PlayerPickUpListener implements Listener{
 
     private BlockShop plugin;
@@ -25,10 +23,8 @@ public class PlayerPickUpListener implements Listener{
         }
         if (!e.isCancelled()){
             if (plugin.getItemShopManager().isItemShop(e.getItem().getItemStack())) {
-                e.getItem().getItemStack().setAmount(0);
-
+                e.getItem().remove();
             }
         }
     }
-
 }
