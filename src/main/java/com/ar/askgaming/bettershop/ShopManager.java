@@ -11,8 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 
-import net.md_5.bungee.api.chat.hover.content.Item;
-
 public class ShopManager {
 
     private BlockShop plugin;

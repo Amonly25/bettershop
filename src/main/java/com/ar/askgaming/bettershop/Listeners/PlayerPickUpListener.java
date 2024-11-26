@@ -5,9 +5,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 
 import com.ar.askgaming.bettershop.BlockShop;
-import com.ar.askgaming.bettershop.Shop;
-
-import net.md_5.bungee.api.chat.hover.content.Item;
 
 public class PlayerPickUpListener implements Listener{
 

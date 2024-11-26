@@ -16,8 +16,6 @@ import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 
 
 public class Shop implements ConfigurationSerializable {
@@ -46,6 +44,8 @@ public class Shop implements ConfigurationSerializable {
         this.itemStack = itemStack;
         this.owner = owner;
         this.name = name;
+
+        text = name;
 
         initializeShop();
         save();
@@ -113,7 +113,7 @@ public class Shop implements ConfigurationSerializable {
             e.printStackTrace();
         }
     }
-    private void setAmorStand() {
+    private void setTextDisplay() {
 
         if (textDisplay != null) {
             textDisplay.setText(text);
@@ -129,11 +129,6 @@ public class Shop implements ConfigurationSerializable {
     //#region setItem
     public void setItem(ItemStack toChangue){
         itemStack = toChangue;
-
-        NamespacedKey key = new NamespacedKey(plugin, "bettershop.item_price");
-        ItemMeta meta = itemStack.getItemMeta();
-        meta.getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, 0.0);
-        itemStack.setItemMeta(meta);
   
         spawnItem();
         save();
@@ -143,18 +138,11 @@ public class Shop implements ConfigurationSerializable {
             itemDisplay.setItemStack(itemStack);
             return;
         }
-        item = world.dropItem(location.clone().add(0.5, 1, 0.5), itemStack);
-        plugin.protectedEntities.add(item);
-        item.setUnlimitedLifetime(true);
-        item.setPersistent(true);
-        item.setInvulnerable(true);
-        item.setGravity(false);
-        item.setVelocity(item.getVelocity().multiply(0));
-        item.setCustomName(subTitle);
-        item.setCustomNameVisible(true);
-
-
-
+        itemDisplay = (ItemDisplay) world.spawn(location.clone().add(0.5, 1, 0.5), ItemDisplay.class);
+        itemDisplay.setItemStack(itemStack);
+        plugin.protectedEntities.add(itemDisplay);
+        
+        
     }
     public void setText(String text) {
  
