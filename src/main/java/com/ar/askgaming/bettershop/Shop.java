@@ -5,22 +5,17 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Item;
+import org.bukkit.entity.Display.Billboard;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 
 
 public class Shop implements ConfigurationSerializable {
@@ -29,16 +24,16 @@ public class Shop implements ConfigurationSerializable {
 
     private Block blockShop;
     private World world;
-    private Item item;
     private Inventory inventory;
     private OfflinePlayer owner;
-    private String title = "-";
-    private String subTitle = "-";
+    private String text = "-";
     private String name;
-    private ArmorStand armorStand;
     private Location location;
     private ItemStack itemStack;
     private boolean isServerShop = false;
+
+    private TextDisplay textDisplay;
+    private ItemDisplay itemDisplay;
 
     // Constructor created by command
     public Shop(Block targetBlock, ItemStack itemStack, Player owner, String name) {
@@ -49,6 +44,7 @@ public class Shop implements ConfigurationSerializable {
         this.itemStack = itemStack;
         this.owner = owner;
         this.name = name;
+        text = name;
 
         initializeShop();
         save();
@@ -58,8 +54,7 @@ public class Shop implements ConfigurationSerializable {
     public Shop(Map<String, Object> map) {
         name = map.get("name").toString();
         owner = plugin.getServer().getOfflinePlayer(UUID.fromString(map.get("owner").toString()));
-        title = map.get("title").toString();
-        subTitle = map.get("subtitle").toString();
+        text = map.get("text").toString();
         location = (Location) map.get("location");
         blockShop = location.getBlock();
         world = location.getWorld();
@@ -79,7 +74,7 @@ public class Shop implements ConfigurationSerializable {
         }
 
         spawnItem();
-        setAmorStand();
+        setTextDisplay();
     }
 
     @Override
@@ -89,8 +84,7 @@ public class Shop implements ConfigurationSerializable {
         map.put("location", location);
         map.put("itemstack", itemStack);
         map.put("owner", owner.getUniqueId().toString());
-        map.put("title", title);
-        map.put("subtitle", subTitle);
+        map.put("text", text);
         map.put("name", name);
         map.put("isServerShop", String.valueOf(isServerShop));
 
@@ -108,8 +102,8 @@ public class Shop implements ConfigurationSerializable {
                 }
             }
             
-            armorStand.remove();
-            item.remove();
+            textDisplay.remove();
+            itemDisplay.remove();
 
             plugin.getBlockShopManager().getShops().remove(blockShop.getLocation());
 
@@ -117,59 +111,43 @@ public class Shop implements ConfigurationSerializable {
             e.printStackTrace();
         }
     }
-    private void setAmorStand() {
+    private void setTextDisplay() {
 
-        if (armorStand != null) {
-            armorStand.remove();
+        if (textDisplay != null) {
+            textDisplay.setText(text);
+            return;
         }
                     
-        armorStand = (ArmorStand) world.spawnEntity(location.clone().add(0.5, 1.5, 0.5), EntityType.ARMOR_STAND);
-        plugin.protectedEntities.add(armorStand);
-        armorStand.setVisible(false); // Hacer el armor stand invisible
-        armorStand.setCustomName(title);
-        armorStand.setCustomNameVisible(true); // Mostrar el nombre del armor stand
-        armorStand.setGravity(false); // Evitar que el armor stand caiga
-        armorStand.setMarker(true); // Reducir el hitbox del armor stand
+        textDisplay = (TextDisplay) world.spawn(location.clone().add(0.5, 1.5, 0.5), TextDisplay.class);
+        plugin.protectedEntities.add(textDisplay);
+        textDisplay.setText(text);
+        textDisplay.setLineWidth(32);
+        textDisplay.setBillboard(Billboard.CENTER);
     }
 
     public void setItem(ItemStack toChangue){
-        itemStack = toChangue;
+        itemStack = toChangue;  
 
-        NamespacedKey key = new NamespacedKey(plugin, "bettershop.item_price");
-        ItemMeta meta = itemStack.getItemMeta();
-        meta.getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, 0.0);
-        itemStack.setItemMeta(meta);
-  
         spawnItem();
         save();
     }
     private void spawnItem(){
-        if (item != null) {
-            item.remove();
+        if (itemDisplay != null) {
+            itemDisplay.setItemStack(itemStack);
+            return;
         }
-        item = world.dropItem(location.clone().add(0.5, 1, 0.5), itemStack);
-        plugin.protectedEntities.add(item);
-        item.setUnlimitedLifetime(true);
-        item.setPersistent(true);
-        item.setInvulnerable(true);
-        item.setGravity(false);
-        item.setVelocity(item.getVelocity().multiply(0));
-        item.setCustomName(subTitle);
-        item.setCustomNameVisible(true);
+        itemDisplay = (ItemDisplay) world.spawn(location.clone().add(0.5, 1, 0.5), ItemDisplay.class);
+        itemDisplay.setItemStack(itemStack);
+        plugin.protectedEntities.add(itemDisplay);
 
     }
-    public void setTitle(String title) {
+    public void setText(String text) {
  
-         armorStand.setCustomName(title);
-         this.title = title;
+         textDisplay.setText(text);
+         this.text = text;
          save();
     }
-    public void setSubtitle(String description) {
 
-        item.setCustomName(description);
-        this.subTitle = description;
-        save();
-    }
     public void save() {
         plugin.getDataHandler().getShopsConfig().set(name, this);
         plugin.getDataHandler().saveShop();
@@ -190,9 +168,7 @@ public class Shop implements ConfigurationSerializable {
     public String getName() {
         return name;
     }
-    public Entity getItem() {
-        return item;
-    }
+
     public Block getBlockShop() {
         return blockShop;
     }
@@ -200,17 +176,6 @@ public class Shop implements ConfigurationSerializable {
     public static Shop deserialize(Map<String, Object> map) {
         
         return new Shop(map);
-    }
-    public String getTitle() {
-        return title;
-    }
-
-    public String getSubtitle() {
-        return subTitle;
-    }
-
-    public ArmorStand getArmorStand() {
-        return armorStand;
     }
     
     public boolean isServerShop() {
@@ -220,5 +185,12 @@ public class Shop implements ConfigurationSerializable {
     public void setServerShop(boolean isServerShop) {
         this.isServerShop = isServerShop;
         save();
+    }
+    public TextDisplay getTextDisplay() {
+        return textDisplay;
+    }
+
+    public ItemDisplay getItemDisplay() {
+        return itemDisplay;
     }
 }

@@ -74,8 +74,8 @@ public class BlockShop extends JavaPlugin {
         }
         
         for (Shop shop : getBlockShopManager().getShops().values()) {
-            shop.getItem().remove();
-            shop.getArmorStand().remove();
+            shop.getItemDisplay().remove();
+            shop.getTextDisplay().remove();
             if (shop.getInventory().getViewers()!=null) {
                 shop.getInventory().getViewers().forEach(v -> 
                     v.closeInventory()

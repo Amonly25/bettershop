@@ -212,14 +212,11 @@ public class Commands implements TabExecutor {
                 item.setAmount(1);
                 shop.setItem(item);
                 break;
-            case "title":
+            case "text":
                 p.sendMessage("Has establecido el titulo de la tienda a" + text);
-                shop.setTitle(text);
+                shop.setText(text);
                 break;
-            case "subtitle":
-                p.sendMessage("Has establecido el subtitulo de la tienda a" + text);
-                shop.setSubtitle(text);
-                break;   
+ 
             case "servershop":
                 if (!p.hasPermission("shop.admin")) {
                     p.sendMessage("You dont have permission to set this!");
