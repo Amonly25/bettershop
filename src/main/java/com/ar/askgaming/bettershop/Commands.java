@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -25,7 +26,7 @@ public class Commands implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("create", "set", "sell", "remove");
+            return Arrays.asList("create", "set", "sell", "remove","open","list");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("set")) {
             return Arrays.asList("title", "subtitle", "item");
@@ -64,6 +65,9 @@ public class Commands implements TabExecutor {
                 break;
             case "remove":
                 handleRemoveShop(p, args);
+                break;
+            case "list":
+                handleList(p, args);
                 break;
             default:
                 break;
@@ -137,12 +141,56 @@ public class Commands implements TabExecutor {
             p.sendMessage("Shop not found!");
         }
     }
+    //#region list
+    public void handleList(Player p, String[] args) {
+
+        if (plugin.getBlockShopManager().getShops().isEmpty()) {
+            p.sendMessage("No shops found!");
+            return;
+        }
+        if (args.length == 1) {
+            p.sendMessage("Shops:");
+            for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
+                p.sendMessage(shop.getName());
+            }
+
+        } 
+        if (args.length == 2) {
+            if (args[1].equalsIgnoreCase("server")) {
+                p.sendMessage("Server Shops:");
+                for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
+                    if (shop.isServerShop()) {
+                        p.sendMessage(shop.getName());
+                    }
+                }
+                return;
+            } 
+            @SuppressWarnings("deprecation")
+            OfflinePlayer player = plugin.getServer().getOfflinePlayer(args[1]);
+            if (player != null) {
+                p.sendMessage("Shops of " + player.getName());
+                for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
+                    if (shop.getOnwer().equals(player)) {
+                        p.sendMessage(shop.getName());
+                    }
+                }
+            } else {
+                p.sendMessage("Player not found!");
+            }
+        }
+        p.sendMessage("Usage: /shop list");
+
+    }
     
     //#region openByCmd
     public void handleOpenByCmd(Player p, String[] args){
 
         if (args.length != 2) {
             p.sendMessage("Usage: /shop open <name>");
+            return;
+        }
+        if (!p.hasPermission("blockshop.opencommand")) {
+            p.sendMessage("You dont have permission to do this!");
             return;
         }
         Shop shop = plugin.getBlockShopManager().getByName(args[1]);

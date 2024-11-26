@@ -16,6 +16,8 @@ import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 
 public class Shop implements ConfigurationSerializable {
@@ -44,7 +46,6 @@ public class Shop implements ConfigurationSerializable {
         this.itemStack = itemStack;
         this.owner = owner;
         this.name = name;
-        text = name;
 
         initializeShop();
         save();
@@ -90,7 +91,8 @@ public class Shop implements ConfigurationSerializable {
 
         return map;
     }
-                
+            
+    //#region remove
     public void remove() {
         try {
             plugin.getDataHandler().getShopsConfig().set(name, null);
@@ -111,7 +113,7 @@ public class Shop implements ConfigurationSerializable {
             e.printStackTrace();
         }
     }
-    private void setTextDisplay() {
+    private void setAmorStand() {
 
         if (textDisplay != null) {
             textDisplay.setText(text);
@@ -124,10 +126,15 @@ public class Shop implements ConfigurationSerializable {
         textDisplay.setLineWidth(32);
         textDisplay.setBillboard(Billboard.CENTER);
     }
-
+    //#region setItem
     public void setItem(ItemStack toChangue){
-        itemStack = toChangue;  
+        itemStack = toChangue;
 
+        NamespacedKey key = new NamespacedKey(plugin, "bettershop.item_price");
+        ItemMeta meta = itemStack.getItemMeta();
+        meta.getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, 0.0);
+        itemStack.setItemMeta(meta);
+  
         spawnItem();
         save();
     }
@@ -136,9 +143,17 @@ public class Shop implements ConfigurationSerializable {
             itemDisplay.setItemStack(itemStack);
             return;
         }
-        itemDisplay = (ItemDisplay) world.spawn(location.clone().add(0.5, 1, 0.5), ItemDisplay.class);
-        itemDisplay.setItemStack(itemStack);
-        plugin.protectedEntities.add(itemDisplay);
+        item = world.dropItem(location.clone().add(0.5, 1, 0.5), itemStack);
+        plugin.protectedEntities.add(item);
+        item.setUnlimitedLifetime(true);
+        item.setPersistent(true);
+        item.setInvulnerable(true);
+        item.setGravity(false);
+        item.setVelocity(item.getVelocity().multiply(0));
+        item.setCustomName(subTitle);
+        item.setCustomNameVisible(true);
+
+
 
     }
     public void setText(String text) {
