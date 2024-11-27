@@ -4,12 +4,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Display.Billboard;
+import org.bukkit.entity.Display.Brightness;
+import org.bukkit.entity.ItemDisplay.ItemDisplayTransform;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
@@ -123,7 +126,7 @@ public class Shop implements ConfigurationSerializable {
         textDisplay = (TextDisplay) world.spawn(location.clone().add(0.5, 1.5, 0.5), TextDisplay.class);
         plugin.protectedEntities.add(textDisplay);
         textDisplay.setText(text);
-        textDisplay.setLineWidth(32);
+        textDisplay.setLineWidth(72);
         textDisplay.setBillboard(Billboard.CENTER);
     }
     //#region setItem
@@ -138,10 +141,11 @@ public class Shop implements ConfigurationSerializable {
             itemDisplay.setItemStack(itemStack);
             return;
         }
-        itemDisplay = (ItemDisplay) world.spawn(location.clone().add(0.5, 1, 0.5), ItemDisplay.class);
+        itemDisplay = (ItemDisplay) world.spawn(location.clone().add(0.5, 1.15, 0.5), ItemDisplay.class);
         itemDisplay.setItemStack(itemStack);
+        itemDisplay.setItemDisplayTransform(ItemDisplayTransform.GROUND);
         plugin.protectedEntities.add(itemDisplay);
-        
+        itemDisplay.setBillboard(Billboard.CENTER);
         
     }
     public void setText(String text) {
