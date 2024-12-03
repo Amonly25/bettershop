@@ -1,6 +1,5 @@
 package com.ar.askgaming.bettershop;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -29,9 +28,9 @@ public class Commands implements TabExecutor {
             return Arrays.asList("create", "set", "sell", "remove","open","list");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("set")) {
-            return Arrays.asList("title", "subtitle", "item");
+            return Arrays.asList("text", "item");
         }
-        return new ArrayList<>();
+        return null;
     }
 
     private Set<Material> transparentMaterials = new HashSet<>(Arrays.asList(Material.AIR, Material.WATER));
@@ -74,6 +73,9 @@ public class Commands implements TabExecutor {
         }
         return false;
     }
+    private String getLang(String path,Player p){
+        return plugin.getLang().getFrom(path,p);
+    }
     //#region createShop
     public void handleCreateShop(Player p, String[] args, Block targetBlock){
 
@@ -86,27 +88,27 @@ public class Commands implements TabExecutor {
         }
 
         if (p.getInventory().getItemInMainHand().getType() == Material.AIR) {
-            p.sendMessage("Debe tener un item en la mano!");
+            p.sendMessage(getLang("misc.item_in_hand", p));
             return;
         }
 
         if (!plugin.getBlockShopManager().hasPermissionAtBlockLocation(p, targetBlock)){
-            p.sendMessage("No tienes permiso para hacer esto aqui!");
+            p.sendMessage(getLang("commands.no_perm", p));
             return;
         }
 
         for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
             if (shop.getName().equalsIgnoreCase(args[1])) {
-                p.sendMessage("Ya hay una tienda con este nombre");
+                p.sendMessage(getLang("shop.exits", p));
                 return;
             }
         }
 
         if (targetBlock.getState() instanceof InventoryHolder) {
-            Shop shop = new Shop(targetBlock, p.getInventory().getItemInMainHand(),p, args[1]);
+            new Shop(targetBlock, p.getInventory().getItemInMainHand(),p, args[1]);
             return;
         }
-        p.sendMessage("Debe ser un bloque con inventario!");
+        p.sendMessage(getLang("shop.must_be_container", p));
 
     }
 
@@ -120,32 +122,32 @@ public class Commands implements TabExecutor {
         if (shop != null) {
             if (shop.getOnwer().equals(p) || p.hasPermission("shop.admin")) {
                 if (p.getInventory().getItemInMainHand().getType() == Material.AIR) {
-                    p.sendMessage("Debe tener un item en la mano!");
+                    p.sendMessage(getLang("misc.item_in_hand", p));
                     return;
                 }
                 try {
                     double d = Double.parseDouble(args[1]);
                     ItemStack i = p.getInventory().getItemInMainHand().clone();
                     if (plugin.getItemShopManager().addItemShop(shop,p.getInventory().getItemInMainHand(), d)){
-                        p.sendMessage("Has agregado "+ i.getAmount() + " items a la tienda, a un valor de " + d + " cada uno");
+                        p.sendMessage(getLang("shop.add_item", p).replace("{amount}", i.getAmount()+"").replace("{price}", d+""));
                     }
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    p.sendMessage(args[1] + " is not a valid number!");
+                    p.sendMessage(plugin.getLang().getFrom("commands.invalid_amount",p));
                 }
             }else{
-                p.sendMessage("You are not the owner of this shop!");
+                p.sendMessage(getLang("commands.no_perm", p));
             }
         } else {
-            p.sendMessage("Shop not found!");
+            p.sendMessage(getLang("shop.not_found", p));
         }
     }
     //#region list
     public void handleList(Player p, String[] args) {
 
         if (plugin.getBlockShopManager().getShops().isEmpty()) {
-            p.sendMessage("No shops found!");
+            p.sendMessage(getLang("shop.not_found", p));
             return;
         }
         if (args.length == 1) {
@@ -190,7 +192,7 @@ public class Commands implements TabExecutor {
             return;
         }
         if (!p.hasPermission("blockshop.opencommand")) {
-            p.sendMessage("You dont have permission to do this!");
+            p.sendMessage(getLang("commands.no_perm", p));
             return;
         }
         Shop shop = plugin.getBlockShopManager().getByName(args[1]);
@@ -198,7 +200,7 @@ public class Commands implements TabExecutor {
            // shop.getInventory().getViewers().forEach(v -> v.closeInventory());
             p.openInventory(shop.getInventory());
         } else {
-            p.sendMessage("Shop not found!");
+            p.sendMessage(getLang("shop.not_found", p));
         }
     }
    
@@ -213,30 +215,30 @@ public class Commands implements TabExecutor {
         if (shop != null) {
             if (shop.getOnwer().equals(p) || p.hasPermission("shop.admin")) {
                 shop.remove();
-                p.sendMessage("Shop removed!");
+                p.sendMessage(getLang("shop.removed", p));
             }else{
-                p.sendMessage("You are not the owner of this shop!");
+                p.sendMessage(getLang("commands.no_perm", p));
             }
         } else {
-            p.sendMessage("Shop not found!");
+            p.sendMessage(getLang("shop.not_found", p));
         }
     }
 
     //#region setCommand
     private void handleSetCommand(Player p, String[] args, Block targetBlock) {
 
-        if (args.length < 3) {
+        if (args.length < 2) {
             p.sendMessage("Usage: /shop set <title/subtitle/item>");
             return;
         }
         Shop shop = plugin.getBlockShopManager().getByBlock(targetBlock);
 
         if (shop == null) {
-            p.sendMessage("Shop not found!");
+            p.sendMessage(getLang("shop.not_found", p));
             return;
         }
         if (!shop.getOnwer().equals(p) || !p.hasPermission("shop.admin")) {
-            p.sendMessage("You dont have permission to do this!");
+            p.sendMessage(getLang("commands.not_found", p));
             return;
         }
 
@@ -245,15 +247,16 @@ public class Commands implements TabExecutor {
             descBuilder.append(args[i]).append(" ");
         }
         String text = descBuilder.toString().trim();
-        if (text.length() > 32) {
-            p.sendMessage("Must be 32 characters or less!");
+        int max_text = plugin.getConfig().getInt("max_text_chars",64);
+        if (text.length() > max_text) {
+            p.sendMessage(getLang("misc.chars_limit", p).replace("{max}", max_text+""));
             return;
         }
 
         switch (args[1].toLowerCase()) {
             case "item":
                 if (p.getInventory().getItemInMainHand().getType() == Material.AIR) {
-                    p.sendMessage("Debe tener un item en la mano!");
+                    p.sendMessage(getLang("misc.item_in_hand", p));
                     return;
                 }
                 ItemStack item = p.getInventory().getItemInMainHand().clone();
@@ -261,16 +264,16 @@ public class Commands implements TabExecutor {
                 shop.setItem(item);
                 break;
             case "text":
-                p.sendMessage("Has establecido el titulo de la tienda a" + text);
+                p.sendMessage(getLang("shop.set_text", p));
                 shop.setText(text);
                 break;
  
             case "servershop":
                 if (!p.hasPermission("shop.admin")) {
-                    p.sendMessage("You dont have permission to set this!");
+                    p.sendMessage(getLang("commands.no_perm", p));
                     return;
                 }
-                p.sendMessage("Has establecido la tienda como tienda del servidor");
+                p.sendMessage(getLang("shop.set_server_shop", p));
                 shop.setServerShop(true);
                 break;                    
             default:

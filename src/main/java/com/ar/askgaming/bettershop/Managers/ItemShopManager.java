@@ -1,4 +1,4 @@
-package com.ar.askgaming.bettershop;
+package com.ar.askgaming.bettershop.Managers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +11,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.checkerframework.checker.nullness.qual.Nullable;
+
+import com.ar.askgaming.bettershop.BlockShop;
+import com.ar.askgaming.bettershop.Shop;
 
 public class ItemShopManager{
 
@@ -102,7 +105,8 @@ public class ItemShopManager{
             shop.getInventory().setItem(slot, item);
             return true;
         }        
-        shop.getOnwer().getPlayer().sendMessage("No hay espacio disponible.");
+        Player p = shop.getOnwer().getPlayer();
+        p.sendMessage(plugin.getLang().getFrom("shop.no_shop_space", p));
         return false;
 
     }
@@ -111,11 +115,11 @@ public class ItemShopManager{
         double price = plugin.getItemShopManager().getPrice(item) * amount;
         
         if (!processPayment(buyer, seller, price)) {
-            buyer.sendMessage("§cError al comprar el item");
+            buyer.sendMessage(plugin.getLang().getFrom("misc.error_buying", buyer));
             return;
         }
     
-        buyer.sendMessage("Has comprado con éxito " + amount + " items por " + price);
+        buyer.sendMessage(plugin.getLang().getFrom("shop.buy", buyer).replace("{amount}", amount+"").replace("{price}", price+""));
     
         ItemStack clonedItem = item.clone();
         plugin.getItemShopManager().removeShopProperties(clonedItem);
@@ -158,7 +162,8 @@ public class ItemShopManager{
             transactionSuccess = plugin.getRealisticEconomy().getEconomyService().playerPayPlayer(buyer.getUniqueId(), seller.getUniqueId(), price);
             Player player = seller.getPlayer();
             if (transactionSuccess && player.isOnline()) {
-                player.sendMessage("§aHas vendido un item por " + price + " a " + buyer.getName());
+
+                player.sendMessage(plugin.getLang().getFrom("shop.sell", player).replace("{price}", price + "").replace("{player}", buyer.getName()));
             }
 
         } else {
@@ -168,7 +173,7 @@ public class ItemShopManager{
     }
     private boolean processVaultPayment(Player buyer,OfflinePlayer seller, double price) {
         if (plugin.getEconomy().getBalance(buyer) < price) {
-            buyer.sendMessage("§cNo tienes suficiente dinero");
+            buyer.sendMessage(plugin.getLang().getFrom("shop.no_money", buyer));
             return false;
         }
         plugin.getEconomy().withdrawPlayer(buyer, price);
@@ -176,7 +181,7 @@ public class ItemShopManager{
             plugin.getEconomy().depositPlayer(seller, price);
             Player player = seller.getPlayer();
             if (player != null) {
-                player.sendMessage("§aHas vendido un item por " + price + " a " + buyer.getName());
+                player.sendMessage(plugin.getLang().getFrom("shop.sell", player).replace("{price}", price + "").replace("{player}", buyer.getName()));
             }
         }
         return true;

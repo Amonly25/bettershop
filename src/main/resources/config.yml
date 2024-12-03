@@ -1,4 +1,4 @@
-
+max_text_chars: 64
 item_shop:
   price_text: "§7Price: "
   lore:

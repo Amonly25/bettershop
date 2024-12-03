@@ -1,0 +1,23 @@
+shop:
+  buy: "&aYou bought {amount} items for {price}!"
+  item_canclled: "&cItem purchase cancelled!"
+  no_money: "&cYou don't have enough money!"
+  exits: "&cThis shop already exists!"
+  must_be_container: "&cThis block must be a container!"
+  add_item: "&aYou added {amount} items for {price}!"
+  not_found: "&cShop not found!"
+  revoved: "&aShop removed!"
+  set_text: "&aYou set the text of the shop!"
+  set_server_shop: "&aYou set the shop as server shop!"
+misc:
+  item_in_hand: "&cYou must have an item in your hand!"
+  no_space: "&cYour inventory is full!"
+  no_shop_space: "&cShop inventory is full!"
+  cant_use_double_chest: "&cYou can't use a double chest, press shift to place other."
+  error_buying: "&cError buying item!"
+  chars_limit: "&cYou have reached the maximum number of characters: {max}"
+
+commands:
+  no_perm: "&cYou don't have permission to do that!"
+  invalid_number: "&cInvalid number!"
+

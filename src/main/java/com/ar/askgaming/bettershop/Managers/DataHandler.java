@@ -1,10 +1,12 @@
-package com.ar.askgaming.bettershop;
+package com.ar.askgaming.bettershop.Managers;
 
 import java.io.File;
 import java.io.IOException;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+
+import com.ar.askgaming.bettershop.BlockShop;
 
 public class DataHandler {
     private File shopsFile;

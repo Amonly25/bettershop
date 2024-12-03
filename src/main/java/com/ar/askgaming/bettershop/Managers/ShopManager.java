@@ -1,4 +1,4 @@
-package com.ar.askgaming.bettershop;
+package com.ar.askgaming.bettershop.Managers;
 
 import java.util.HashMap;
 import java.util.Set;
@@ -10,6 +10,9 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
+
+import com.ar.askgaming.bettershop.BlockShop;
+import com.ar.askgaming.bettershop.Shop;
 
 public class ShopManager {
 

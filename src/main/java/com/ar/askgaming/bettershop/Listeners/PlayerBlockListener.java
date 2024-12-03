@@ -36,7 +36,7 @@ public class PlayerBlockListener implements Listener{
                 continue;
             }
             if (p.getInventory().getItemInMainHand().getType() == shop.getItemStack().getType()){
-                p.sendMessage("No puedes colocar este bloque, utiliza shift en su defecto");
+                p.sendMessage(plugin.getLang().getFrom("misc.cant_use_double_chest", p));
                 e.setCancelled(true);
                 break;
             }

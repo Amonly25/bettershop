@@ -12,7 +12,11 @@ import com.ar.askgaming.bettershop.Listeners.BlockBreakListener;
 import com.ar.askgaming.bettershop.Listeners.InventoryInteractListener;
 import com.ar.askgaming.bettershop.Listeners.InventoryMoveItemListener;
 import com.ar.askgaming.bettershop.Listeners.PlayerBlockListener;
-import com.ar.askgaming.bettershop.Listeners.PlayerPickUpListener;
+import com.ar.askgaming.bettershop.Managers.DataHandler;
+import com.ar.askgaming.bettershop.Managers.ItemShopManager;
+import com.ar.askgaming.bettershop.Managers.LangManager;
+import com.ar.askgaming.bettershop.Managers.ShopManager;
+import com.ar.askgaming.bettershop.Utilities.ShopLogger;
 import com.ar.askgaming.realisticeconomy.RealisticEconomy;
 
 import net.milkbowl.vault.economy.Economy;
@@ -22,7 +26,8 @@ public class BlockShop extends JavaPlugin {
 
     private ShopManager blockShopManager;
     private ItemShopManager itemShopManager;
-
+    private LangManager langManager;
+    private ShopLogger shopLogger;
     private DataHandler dataHandler;
     private Economy vaultEconomy;
     private RealisticEconomy realisticEconomy;
@@ -36,10 +41,11 @@ public class BlockShop extends JavaPlugin {
         dataHandler = new DataHandler(this);
         
         blockShopManager = new ShopManager(this);
-
+        
+        langManager = new LangManager(this);
+        shopLogger = new ShopLogger(this);
         getCommand("shop").setExecutor(new Commands(this));
 
-        getServer().getPluginManager().registerEvents(new PlayerPickUpListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerBlockListener(this), this);
         getServer().getPluginManager().registerEvents(new BlockBreakListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryMoveItemListener(this), this);
@@ -108,6 +114,12 @@ public class BlockShop extends JavaPlugin {
     }
     public void setItemShopManager(ItemShopManager itemShopManager) {
         this.itemShopManager = itemShopManager;
+    }
+    public LangManager getLang() {
+        return langManager;
+    }
+    public ShopLogger getShopLogger() {
+        return shopLogger;
     }
     public List<Entity> protectedEntities = new ArrayList<>();
     

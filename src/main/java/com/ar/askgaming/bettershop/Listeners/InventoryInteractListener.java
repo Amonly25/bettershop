@@ -42,7 +42,7 @@ public class InventoryInteractListener implements Listener{
 
                         //Return is player has inventory full
                         if (e.getWhoClicked().getInventory().firstEmpty() == -1){
-                            e.getWhoClicked().sendMessage("§cYour inventory is full");
+                            e.getWhoClicked().sendMessage(plugin.getLang().getFrom("misc.no_space",p));
                             return;
                         }
 
@@ -51,7 +51,7 @@ public class InventoryInteractListener implements Listener{
                             plugin.getItemShopManager().removeShopProperties(i);
                             p.getInventory().addItem(i.clone());
                             i.setAmount(0);
-                            p.sendMessage("Has cancelado un item con exito.");
+                            p.sendMessage(plugin.getLang().getFrom("shop.item_canclled",p));
                             return;
                         }
 

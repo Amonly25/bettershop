@@ -18,7 +18,7 @@ public class InventoryMoveItemListener implements Listener {
     @EventHandler()
     public void onMoveItem(InventoryMoveItemEvent e) {
 
-
+        // Only to to detect possible bug
         for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
             Inventory inv = shop.getInventory();
 
