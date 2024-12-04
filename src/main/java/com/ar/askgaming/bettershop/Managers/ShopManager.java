@@ -50,6 +50,38 @@ public class ShopManager {
         }
     }
 
+    public void createShop(Block block, ItemStack itemStack, Player owner, String name) {
+        Shop shop = new Shop(block, itemStack, owner, name);
+        shops.put(block.getLocation(), shop);
+        save(shop);
+        
+    }
+    public void save(Shop shop) {
+        plugin.getDataHandler().getShopsConfig().set(shop.getName(), shop);
+        plugin.getDataHandler().saveShop();
+    }
+    //#region remove
+    public void remove(Shop shop) {
+        try {
+            plugin.getDataHandler().getShopsConfig().set(shop.getName(), null);
+            plugin.getDataHandler().saveShop();
+    
+            for (ItemStack item : shop.getInventory().getContents()) {
+                if (item != null) {
+                    plugin.getItemShopManager().removeShopProperties(item);
+                }
+            }
+            
+            shop.getTextDisplay().remove();
+            shop.getItemDisplay().remove();
+
+            shops.remove(shop.getBlockShop().getLocation());
+            shop = null;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     public boolean isShop(Block block){
 
         for (Shop shop : getShops().values()) {
@@ -91,6 +123,14 @@ public class ShopManager {
             return false;
         }
         
+    }
+    public Shop getByLocation(Location location) {
+        for (Shop shop : getShops().values()) {
+            if(shop.getLocation().equals(location)){
+                return shop;
+            }
+        }
+        return null;
     }
     
 }

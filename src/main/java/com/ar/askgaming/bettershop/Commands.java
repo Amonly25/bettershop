@@ -79,6 +79,8 @@ public class Commands implements TabExecutor {
     //#region createShop
     public void handleCreateShop(Player p, String[] args, Block targetBlock){
 
+        ItemStack item = p.getInventory().getItemInMainHand();
+
         if (transparentMaterials.contains(targetBlock.getType())) {
             return;
         }
@@ -87,7 +89,7 @@ public class Commands implements TabExecutor {
             return;
         }
 
-        if (p.getInventory().getItemInMainHand().getType() == Material.AIR) {
+        if (item.getType() == Material.AIR) {
             p.sendMessage(getLang("misc.item_in_hand", p));
             return;
         }
@@ -105,7 +107,7 @@ public class Commands implements TabExecutor {
         }
 
         if (targetBlock.getState() instanceof InventoryHolder) {
-            new Shop(targetBlock, p.getInventory().getItemInMainHand(),p, args[1]);
+            plugin.getBlockShopManager().createShop(targetBlock,item, p, args[1]);
             return;
         }
         p.sendMessage(getLang("shop.must_be_container", p));
@@ -214,7 +216,7 @@ public class Commands implements TabExecutor {
         Shop shop = plugin.getBlockShopManager().getByName(args[1]);
         if (shop != null) {
             if (shop.getOnwer().equals(p) || p.hasPermission("shop.admin")) {
-                shop.remove();
+                plugin.getBlockShopManager().remove(shop);
                 p.sendMessage(getLang("shop.removed", p));
             }else{
                 p.sendMessage(getLang("commands.no_perm", p));
@@ -262,10 +264,12 @@ public class Commands implements TabExecutor {
                 ItemStack item = p.getInventory().getItemInMainHand().clone();
                 item.setAmount(1);
                 shop.setItem(item);
+                plugin.getBlockShopManager().save(shop);
                 break;
             case "text":
                 p.sendMessage(getLang("shop.set_text", p));
                 shop.setText(text);
+                plugin.getBlockShopManager().save(shop);
                 break;
  
             case "servershop":
@@ -275,6 +279,7 @@ public class Commands implements TabExecutor {
                 }
                 p.sendMessage(getLang("shop.set_server_shop", p));
                 shop.setServerShop(true);
+                plugin.getBlockShopManager().save(shop);
                 break;                    
             default:
                 p.sendMessage("Usage: /shop set <title/subtitle/item>");

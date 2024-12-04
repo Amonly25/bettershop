@@ -1,5 +1,6 @@
 package com.ar.askgaming.bettershop.Listeners;
 
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -35,10 +36,11 @@ public class PlayerBlockListener implements Listener{
             if (shop.getBlockShop().getLocation().distance(b.getLocation() ) > 1){
                 continue;
             }
-            if (p.getInventory().getItemInMainHand().getType() == shop.getItemStack().getType()){
+            if (b.getType() == Material.CHEST || b.getType() == Material.TRAPPED_CHEST){
                 p.sendMessage(plugin.getLang().getFrom("misc.cant_use_double_chest", p));
                 e.setCancelled(true);
                 break;
+
             }
         }
     }

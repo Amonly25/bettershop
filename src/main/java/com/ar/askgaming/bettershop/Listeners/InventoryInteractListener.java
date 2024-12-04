@@ -51,7 +51,7 @@ public class InventoryInteractListener implements Listener{
                             plugin.getItemShopManager().removeShopProperties(i);
                             p.getInventory().addItem(i.clone());
                             i.setAmount(0);
-                            p.sendMessage(plugin.getLang().getFrom("shop.item_canclled",p));
+                            p.sendMessage(plugin.getLang().getFrom("shop.item_cancelled",p));
                             return;
                         }
 

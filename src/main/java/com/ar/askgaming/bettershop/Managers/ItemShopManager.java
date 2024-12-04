@@ -158,6 +158,10 @@ public class ItemShopManager{
     }
     private boolean processRealisticPayment(Player buyer, OfflinePlayer seller, double price) {
         boolean transactionSuccess = false;
+        if (plugin.getRealisticEconomy().getEconomyService().getBalance(buyer.getUniqueId()) < price) {
+            buyer.sendMessage(plugin.getLang().getFrom("shop.no_money", buyer));
+            return false;
+        }
         if (seller != null) {
             transactionSuccess = plugin.getRealisticEconomy().getEconomyService().playerPayPlayer(buyer.getUniqueId(), seller.getUniqueId(), price);
             Player player = seller.getPlayer();

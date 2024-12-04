@@ -1,12 +1,13 @@
 shop:
   buy: "&aYou bought {amount} items for {price}!"
-  item_canclled: "&cItem purchase cancelled!"
+  sell: "&aNew Sold for {price} to {player}!"
+  item_cancelled: "&cItem purchase cancelled!"
   no_money: "&cYou don't have enough money!"
   exits: "&cThis shop already exists!"
   must_be_container: "&cThis block must be a container!"
   add_item: "&aYou added {amount} items for {price}!"
   not_found: "&cShop not found!"
-  revoved: "&aShop removed!"
+  removed: "&aShop removed!"
   set_text: "&aYou set the text of the shop!"
   set_server_shop: "&aYou set the shop as server shop!"
 misc:
