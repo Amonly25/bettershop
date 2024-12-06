@@ -132,5 +132,14 @@ public class ShopManager {
         }
         return null;
     }
+    public boolean hasAdminPermission(Player player, Shop shop) {
+        if (player.hasPermission("bettershop.admin")) {
+            return true;
+        }
+        if (shop.getOnwer().getUniqueId().equals(player.getUniqueId())) {
+            return true;
+        }
+        return false;
+    }
     
 }

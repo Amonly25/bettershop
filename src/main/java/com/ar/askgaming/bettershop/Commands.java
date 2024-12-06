@@ -214,23 +214,23 @@ public class Commands implements TabExecutor {
             return;
         }
         Shop shop = plugin.getBlockShopManager().getByName(args[1]);
-        if (shop != null) {
-            if (shop.getOnwer().equals(p) || p.hasPermission("shop.admin")) {
-                plugin.getBlockShopManager().remove(shop);
-                p.sendMessage(getLang("shop.removed", p));
-            }else{
-                p.sendMessage(getLang("commands.no_perm", p));
-            }
-        } else {
+        if (shop == null) {
             p.sendMessage(getLang("shop.not_found", p));
+            return;
         }
+        if (!plugin.getBlockShopManager().hasAdminPermission(p, shop)){
+            p.sendMessage(getLang("commands.no_perm", p));
+            return;
+        }
+        plugin.getBlockShopManager().remove(shop);
+        p.sendMessage(getLang("shop.removed", p));
     }
 
     //#region setCommand
     private void handleSetCommand(Player p, String[] args, Block targetBlock) {
 
         if (args.length < 2) {
-            p.sendMessage("Usage: /shop set <title/subtitle/item>");
+            p.sendMessage("Usage: /shop set <text/item>");
             return;
         }
         Shop shop = plugin.getBlockShopManager().getByBlock(targetBlock);
@@ -239,9 +239,9 @@ public class Commands implements TabExecutor {
             p.sendMessage(getLang("shop.not_found", p));
             return;
         }
-        if (!shop.getOnwer().equals(p) || !p.hasPermission("shop.admin")) {
-            p.sendMessage(getLang("commands.not_found", p));
-            return;
+        if (!plugin.getBlockShopManager().hasAdminPermission(p, shop)){
+                p.sendMessage(getLang("commands.no_perm", p));
+                return;
         }
 
         StringBuilder descBuilder = new StringBuilder();
