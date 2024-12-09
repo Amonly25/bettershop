@@ -12,6 +12,7 @@ import com.ar.askgaming.bettershop.Listeners.BlockBreakListener;
 import com.ar.askgaming.bettershop.Listeners.InventoryInteractListener;
 import com.ar.askgaming.bettershop.Listeners.InventoryMoveItemListener;
 import com.ar.askgaming.bettershop.Listeners.PlayerBlockListener;
+import com.ar.askgaming.bettershop.Listeners.PlayerInteractListener;
 import com.ar.askgaming.bettershop.Managers.DataHandler;
 import com.ar.askgaming.bettershop.Managers.ItemShopManager;
 import com.ar.askgaming.bettershop.Managers.LangManager;
@@ -50,6 +51,7 @@ public class BlockShop extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new BlockBreakListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryMoveItemListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryInteractListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
 
         //Vault Integration
 

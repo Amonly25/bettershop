@@ -155,9 +155,11 @@ public class Commands implements TabExecutor {
         if (args.length == 1) {
             p.sendMessage("Shops:");
             for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
-                p.sendMessage(shop.getName());
+                if (shop.getOnwer().equals(p)) {
+                    p.sendMessage(shop.getName());
+                }
             }
-
+            return;
         } 
         if (args.length == 2) {
             if (args[1].equalsIgnoreCase("server")) {
