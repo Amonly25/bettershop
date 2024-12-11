@@ -57,7 +57,10 @@ public class ItemShopManager{
         if (meta.hasLore()) {
             List<String> lore = meta.getLore();
             for (int i = 0; i < itemShopLore.size(); i++) {
-                lore.add(itemShopLore.get(i).replace("{price}", String.valueOf(price)));
+                String line = itemShopLore.get(i).replace("{price}", String.valueOf(price));
+                if (!lore.contains(line)) {
+                    lore.add(line);
+                }
             }
             meta.setLore(lore);
         } else {

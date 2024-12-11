@@ -22,3 +22,11 @@ commands:
   no_perm: "&cYou don't have permission to do that!"
   invalid_number: "&cInvalid number!"
 
+help:
+  - "&e/shop create <name> &7- Create a shop, you must look at a chest or a barrel."
+  - "&e/shop remove &7- Remove a shop."
+  - "&e/shop set text <text> &7- Set the text of the shop."
+  - "&e/shop set item &7- Set the icon displayed in the shop."
+  - "&e/shop list &7- List your shops."
+  - "&e/shop sell <amount> &7- Add items to the shop, the item must be in your hand and you must look at the shop. The price is for each item."
+

@@ -25,7 +25,7 @@ public class Commands implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("create", "set", "sell", "remove","open","list");
+            return Arrays.asList("create", "set", "sell", "remove","open","list","help");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("set")) {
             return Arrays.asList("text", "item");
@@ -38,7 +38,7 @@ public class Commands implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage("Usage: /shop <reload>");
+            sender.sendMessage("Usage: /shop <create/set/sell/remove/list/help>");
             return true;
         }
         if (!(sender instanceof Player)) {
@@ -67,6 +67,9 @@ public class Commands implements TabExecutor {
                 break;
             case "list":
                 handleList(p, args);
+                break;
+            case "help":
+                help(p,args);
                 break;
             default:
                 break;
@@ -285,5 +288,8 @@ public class Commands implements TabExecutor {
                 p.sendMessage("Usage: /shop set <title/subtitle/item>");
                 break;
         }
+    }
+    private void help(Player p, String[] args) {
+        p.sendMessage(plugin.getLang().getFrom("help", p));
     }
 }
