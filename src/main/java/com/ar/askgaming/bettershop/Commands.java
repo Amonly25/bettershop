@@ -158,7 +158,7 @@ public class Commands implements TabExecutor {
         if (args.length == 1) {
             p.sendMessage("Shops:");
             for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
-                if (shop.getOnwer().equals(p)) {
+                if (shop.getOnwer().getUniqueId().equals(p.getUniqueId())) {
                     p.sendMessage(shop.getName());
                 }
             }
@@ -187,8 +187,6 @@ public class Commands implements TabExecutor {
                 p.sendMessage("Player not found!");
             }
         }
-        p.sendMessage("Usage: /shop list");
-
     }
     
     //#region openByCmd
