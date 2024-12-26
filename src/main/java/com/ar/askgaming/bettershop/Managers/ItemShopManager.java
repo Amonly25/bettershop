@@ -95,7 +95,12 @@ public class ItemShopManager{
     }
 
     public double getPrice(ItemStack i) {
-        return i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.DOUBLE);
+        try {
+            return i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.DOUBLE);
+        } catch (NullPointerException e) {
+            setShopProperties(i, 0);
+            return 0;
+        }
     }
     //#region additem
     public boolean addItemShop(Shop shop, ItemStack itemInMainHand, double price) {

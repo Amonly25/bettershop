@@ -19,64 +19,77 @@ public class InventoryInteractListener implements Listener{
     }
     @EventHandler()
     public void onClickInventory(InventoryClickEvent e) {
-       
-        ItemStack i = e.getCurrentItem();
-
-        if (i == null || i.getType() == Material.AIR) {
-            return;
-        }
-
+    
+        Inventory clickedInventory = e.getClickedInventory();
+        Inventory eventInventory = e.getInventory();
+    
         for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
-            Inventory inv = shop.getInventory();
-
-            if (inv.equals(e.getClickedInventory()) || inv.equals(e.getInventory())){
-                
-                //Is shop! cancel any event
+            Inventory shopInventory = shop.getInventory();
+    
+            if (shopInventory.equals(clickedInventory) || shopInventory.equals(eventInventory)) {
                 e.setCancelled(true);
 
-                if (e.getWhoClicked() instanceof Player){
-
-                    Player p = (Player) e.getWhoClicked();
-
-                    if (plugin.getItemShopManager().isItemShop(i)){
-
-                        //Return is player has inventory full
-                        if (e.getWhoClicked().getInventory().firstEmpty() == -1){
-                            e.getWhoClicked().sendMessage(plugin.getLang().getFrom("misc.no_space",p));
-                            return;
-                        }
-
-                        // Check is owner and cancel item
-                        if (shop.getOnwer().equals(p)){     
-                            plugin.getItemShopManager().removeShopProperties(i);
-                            p.getInventory().addItem(i.clone());
-                            i.setAmount(0);
-                            p.sendMessage(plugin.getLang().getFrom("shop.item_cancelled",p));
-                            return;
-                        }
-
-                        // Process user action to buy item
-                        int amount;
-
-                        switch (e.getClick()) {
-                            case RIGHT:
-                                amount = 1;
-                                break;
-                            case SHIFT_RIGHT:
-                                amount = i.getAmount();
-                                break;
-                            default:
-                                return;
-                        }
-                        
-                        if (shop.isServerShop()) {
-                            plugin.getItemShopManager().buyItemToServer(p, i, amount);
-                        } else {
-                            plugin.getItemShopManager().buyItemToPlayer(shop.getOnwer(), p, i, amount);
-                        }
-                    }
+                ItemStack item = e.getCurrentItem();
+    
+                if (item == null || item.getType() == Material.AIR) {
+                    return;
                 }
+                
+                handleShopInteraction(e, shop, item);
+                return;
             }
-        }   
+        }
+    }
+    
+    private void handleShopInteraction(InventoryClickEvent e, Shop shop, ItemStack item) {
+    
+        if (!(e.getWhoClicked() instanceof Player)) {
+            return;
+        }
+    
+        Player player = (Player) e.getWhoClicked();
+    
+        if (!plugin.getItemShopManager().isItemShop(item)) {
+            return;
+        }
+    
+        if (player.getInventory().firstEmpty() == -1) {
+            player.sendMessage(plugin.getLang().getFrom("misc.no_space", player));
+            return;
+        }
+    
+        if (shop.getOnwer().equals(player)) {
+            cancelShopItem(player, item, shop);
+        } else {
+            processPurchase(e, player, item, shop);
+        }
+    }
+    
+    private void cancelShopItem(Player player, ItemStack item, Shop shop) {
+        plugin.getItemShopManager().removeShopProperties(item);
+        player.getInventory().addItem(item.clone());
+        item.setAmount(0);
+        player.sendMessage(plugin.getLang().getFrom("shop.item_cancelled", player));
+    }
+    
+    private void processPurchase(InventoryClickEvent e, Player player, ItemStack item, Shop shop) {
+        int amount;
+    
+        switch (e.getClick()) {
+            case RIGHT:
+                amount = 1;
+                break;
+            case SHIFT_RIGHT:
+                amount = item.getAmount();
+                break;
+            default:
+                return;
+        }
+    
+        if (shop.isServerShop()) {
+            plugin.getItemShopManager().buyItemToServer(player, item, amount);
+        } else {
+            plugin.getItemShopManager().buyItemToPlayer(shop.getOnwer(), player, item, amount);
+        }
     }
 }
