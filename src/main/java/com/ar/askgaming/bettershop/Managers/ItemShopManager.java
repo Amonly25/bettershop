@@ -111,6 +111,7 @@ public class ItemShopManager{
             setShopProperties(item, price);
             itemInMainHand.setAmount(0); // Clear the item in the hand
             shop.getInventory().setItem(slot, item);
+            plugin.getShopLogger().log("Item added to shop: " + shop.getName() + " Item: " + item.getType().name() + " Price: " + price + " Amount: " + item.getAmount());
             return true;
         }        
         Player p = shop.getOnwer().getPlayer();
@@ -128,7 +129,8 @@ public class ItemShopManager{
         }
     
         buyer.sendMessage(plugin.getLang().getFrom("shop.buy", buyer).replace("{amount}", amount+"").replace("{price}", price+""));
-    
+        plugin.getShopLogger().log("Player " + buyer.getName() + " bought " + amount + " of " + item.getType().name() + " for " + price + " from " + (seller == null ? "Server" : seller.getName()));
+
         ItemStack clonedItem = item.clone();
         plugin.getItemShopManager().removeShopProperties(clonedItem);
     
@@ -173,7 +175,7 @@ public class ItemShopManager{
         if (seller != null) {
             transactionSuccess = plugin.getRealisticEconomy().getEconomyService().playerPayPlayer(buyer.getUniqueId(), seller.getUniqueId(), price);
             Player player = seller.getPlayer();
-            if (transactionSuccess && player.isOnline()) {
+            if (transactionSuccess && player != null) {
 
                 player.sendMessage(plugin.getLang().getFrom("shop.sell", player).replace("{price}", price + "").replace("{player}", buyer.getName()));
             }

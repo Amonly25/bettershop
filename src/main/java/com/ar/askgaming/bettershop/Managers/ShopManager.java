@@ -54,6 +54,7 @@ public class ShopManager {
         Shop shop = new Shop(block, itemStack, owner, name);
         shops.put(block.getLocation(), shop);
         save(shop);
+        plugin.getShopLogger().log("Shop created: " + shopToString(shop));
         
     }
     public void save(Shop shop) {
@@ -76,9 +77,11 @@ public class ShopManager {
             shop.getItemDisplay().remove();
 
             shops.remove(shop.getBlockShop().getLocation());
+            plugin.getShopLogger().log("Shop removed: " + shopToString(shop));
             shop = null;
-
+        
         } catch (Exception e) {
+            plugin.getShopLogger().log("Error removing shop: " + shopToString(shop));
             e.printStackTrace();
         }
     }
@@ -140,6 +143,9 @@ public class ShopManager {
             return true;
         }
         return false;
+    }
+    private String shopToString(Shop shop) {
+        return shop.getName() + " by " + shop.getOnwer().getName() + " at " + shop.getBlockShop().getWorld().getName() + " " + shop.getBlockShop().getX() + " " + shop.getBlockShop().getY() + " " + shop.getBlockShop().getZ();
     }
     
 }

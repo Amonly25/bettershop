@@ -66,6 +66,7 @@ public class InventoryInteractListener implements Listener{
     }
     
     private void cancelShopItem(Player player, ItemStack item, Shop shop) {
+        plugin.getShopLogger().log("Player " + player.getName() + " cancelled item " + item.getType().name() + " from shop " + shop.getName());
         plugin.getItemShopManager().removeShopProperties(item);
         player.getInventory().addItem(item.clone());
         item.setAmount(0);
