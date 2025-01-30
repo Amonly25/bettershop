@@ -1,0 +1,31 @@
+shop:
+  buy: "&a¡Has comprado {amount} artículos por {price}!"
+  sell: "&a¡Vendiste por {price} a {player}!"
+  item_cancelled: "&c¡Compra de artículo cancelada!"
+  no_money: "&c¡No tienes suficiente dinero!"
+  exits: "&c¡Esta tienda ya existe!"
+  must_be_container: "&c¡Este bloque debe ser un contenedor!"
+  add_item: "&a¡Agregaste {amount} artículos por {price}!"
+  not_found: "&c¡Tienda no encontrada!"
+  removed: "&a¡Tienda eliminada!"
+  set_text: "&a¡Texto de la tienda configurado!"
+  set_server_shop: "&a¡Tienda configurada como tienda del servidor!"
+misc:
+  item_in_hand: "&c¡Debes tener un artículo en la mano!"
+  no_space: "&c¡Tu inventario está lleno!"
+  no_shop_space: "&c¡El inventario de la tienda está lleno!"
+  cant_use_double_chest: "&c¡No puedes usar un cofre doble, presiona shift para colocar otro!"
+  error_buying: "&c¡Error al comprar el artículo!"
+  chars_limit: "&c¡Has alcanzado el número máximo de caracteres: {max}"
+
+commands:
+  no_perm: "&c¡No tienes permiso para hacer eso!"
+  invalid_number: "&c¡Número inválido!"
+
+help:
+  - "&e/shop create <name> &7- Crear una tienda, debes mirar un cofre o un barril."
+  - "&e/shop remove &7- Eliminar una tienda."
+  - "&e/shop set text <text> &7- Establecer el texto de la tienda."
+  - "&e/shop set item &7- Establecer el ícono mostrado en la tienda."
+  - "&e/shop list &7- Listar tus tiendas."
+  - "&e/shop sell <amount> &7- Agregar artículos a la tienda, el artículo debe estar en tu mano y debes mirar la tienda. El precio es por cada artículo."

@@ -23,6 +23,11 @@ public class PlayerBlockListener implements Listener{
         Player p = e.getPlayer();
 
         for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
+
+            if (shop.getBlockShop().getWorld() != b.getWorld()){
+                continue;
+            }
+
             if (b.getLocation().getBlockX() == shop.getBlockShop().getLocation().getBlockX() &&
                 b.getLocation().getBlockY()-1 == shop.getBlockShop().getLocation().getBlockY() &&
                 b.getLocation().getBlockZ() == shop.getBlockShop().getLocation().getBlockZ()) {
