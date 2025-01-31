@@ -8,6 +8,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.ar.askgaming.bettershop.Auctions.Auction;
+import com.ar.askgaming.bettershop.Auctions.AuctionManager;
 import com.ar.askgaming.bettershop.Listeners.BlockBreakListener;
 import com.ar.askgaming.bettershop.Listeners.InventoryInteractListener;
 import com.ar.askgaming.bettershop.Listeners.InventoryMoveItemListener;
@@ -32,12 +34,14 @@ public class BlockShop extends JavaPlugin {
     private DataHandler dataHandler;
     private Economy vaultEconomy;
     private RealisticEconomy realisticEconomy;
+    private AuctionManager auctionManager;
 
     public  void onEnable() {
         
         saveDefaultConfig();
 
         ConfigurationSerialization.registerClass(Shop.class,"Shop");
+        ConfigurationSerialization.registerClass(Auction.class,"Auction");
 
         dataHandler = new DataHandler(this);
         
@@ -113,6 +117,9 @@ public class BlockShop extends JavaPlugin {
     }
     public RealisticEconomy getRealisticEconomy() {
         return realisticEconomy;
+    }
+    public AuctionManager getAuctionManager() {
+        return auctionManager;
     }
     public void setItemShopManager(ItemShopManager itemShopManager) {
         this.itemShopManager = itemShopManager;
