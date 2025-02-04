@@ -7,9 +7,10 @@ shop:
   must_be_container: "&cThis block must be a container!"
   add_item: "&aYou added {amount} items for {price}!"
   not_found: "&cShop not found!"
-  removed: "&aShop removed!"
+  deleted: "&aShop deleted!"
   set_text: "&aYou set the text of the shop!"
   set_server_shop: "&aYou set the shop as server shop!"
+  double_chest: "&cYou must use a single chest!"
 misc:
   item_in_hand: "&cYou must have an item in your hand!"
   no_space: "&cYour inventory is full!"
@@ -24,7 +25,7 @@ commands:
 
 help:
   - "&e/shop create <name> &7- Create a shop, you must look at a chest or a barrel."
-  - "&e/shop remove &7- Remove a shop."
+  - "&e/shop delete &7- Delete a shop."
   - "&e/shop set text <text> &7- Set the text of the shop."
   - "&e/shop set item &7- Set the icon displayed in the shop."
   - "&e/shop list &7- List your shops."

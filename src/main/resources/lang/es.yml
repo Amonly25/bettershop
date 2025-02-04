@@ -7,9 +7,10 @@ shop:
   must_be_container: "&c¡Este bloque debe ser un contenedor!"
   add_item: "&a¡Agregaste {amount} artículos por {price}!"
   not_found: "&c¡Tienda no encontrada!"
-  removed: "&a¡Tienda eliminada!"
+  deleted: "&a¡Tienda eliminada!"
   set_text: "&a¡Texto de la tienda configurado!"
   set_server_shop: "&a¡Tienda configurada como tienda del servidor!"
+  double_chest: "&c¡Debes usar un cofre simple!"
 misc:
   item_in_hand: "&c¡Debes tener un artículo en la mano!"
   no_space: "&c¡Tu inventario está lleno!"
@@ -24,7 +25,7 @@ commands:
 
 help:
   - "&e/shop create <name> &7- Crear una tienda, debes mirar un cofre o un barril."
-  - "&e/shop remove &7- Eliminar una tienda."
+  - "&e/shop delete &7- Eliminar una tienda."
   - "&e/shop set text <text> &7- Establecer el texto de la tienda."
   - "&e/shop set item &7- Establecer el ícono mostrado en la tienda."
   - "&e/shop list &7- Listar tus tiendas."

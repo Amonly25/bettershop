@@ -12,6 +12,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
@@ -25,7 +26,7 @@ public class Commands implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("create", "set", "sell", "remove","open","list","help");
+            return Arrays.asList("create", "set", "sell", "delete","open","list","help");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("set")) {
             return Arrays.asList("text", "item");
@@ -38,7 +39,7 @@ public class Commands implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage("Usage: /shop <create/set/sell/remove/list/help>");
+            sender.sendMessage("Usage: /shop <create/set/sell/delete/list/help>");
             return true;
         }
         if (!(sender instanceof Player)) {
@@ -62,7 +63,7 @@ public class Commands implements TabExecutor {
             case "open":
                 handleOpenByCmd(p, args);
                 break;
-            case "remove":
+            case "delete":
                 handleRemoveShop(p, args);
                 break;
             case "list":
@@ -110,6 +111,11 @@ public class Commands implements TabExecutor {
         }
 
         if (targetBlock.getState() instanceof InventoryHolder) {
+            InventoryHolder ih = (InventoryHolder) targetBlock.getState();
+            if (ih.getInventory() instanceof DoubleChestInventory) {
+                p.sendMessage(getLang("shop.double_chest", p));
+                return;
+            }
             plugin.getBlockShopManager().createShop(targetBlock,item, p, args[1]);
             return;
         }
@@ -213,7 +219,7 @@ public class Commands implements TabExecutor {
     public void handleRemoveShop(Player p, String[] args){
 
         if (args.length != 2) {
-            p.sendMessage("Usage: /shop remove <name>");
+            p.sendMessage("Usage: /shop delete <name>");
             return;
         }
         Shop shop = plugin.getBlockShopManager().getByName(args[1]);
@@ -226,7 +232,7 @@ public class Commands implements TabExecutor {
             return;
         }
         plugin.getBlockShopManager().remove(shop);
-        p.sendMessage(getLang("shop.removed", p));
+        p.sendMessage(getLang("shop.deleted", p));
     }
 
     //#region setCommand
