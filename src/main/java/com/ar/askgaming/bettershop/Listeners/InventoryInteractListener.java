@@ -8,13 +8,13 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import com.ar.askgaming.bettershop.BlockShop;
-import com.ar.askgaming.bettershop.Shop;
+import com.ar.askgaming.bettershop.BetterShop;
+import com.ar.askgaming.bettershop.BlockShop.BlockShop;
 
 public class InventoryInteractListener implements Listener{
 
-    private BlockShop plugin;
-    public InventoryInteractListener(BlockShop main) {
+    private BetterShop plugin;
+    public InventoryInteractListener(BetterShop main) {
         plugin = main;
     }
     @EventHandler()
@@ -23,7 +23,7 @@ public class InventoryInteractListener implements Listener{
         Inventory clickedInventory = e.getClickedInventory();
         Inventory eventInventory = e.getInventory();
     
-        for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
+        for (BlockShop shop : plugin.getBlockShopManager().getShops().values()) {
             Inventory shopInventory = shop.getInventory();
     
             if (shopInventory.equals(clickedInventory) || shopInventory.equals(eventInventory)) {
@@ -41,7 +41,7 @@ public class InventoryInteractListener implements Listener{
         }
     }
     
-    private void handleShopInteraction(InventoryClickEvent e, Shop shop, ItemStack item) {
+    private void handleShopInteraction(InventoryClickEvent e, BlockShop shop, ItemStack item) {
     
         if (!(e.getWhoClicked() instanceof Player)) {
             return;
@@ -65,15 +65,15 @@ public class InventoryInteractListener implements Listener{
         }
     }
     
-    private void cancelShopItem(Player player, ItemStack item, Shop shop) {
+    private void cancelShopItem(Player player, ItemStack item, BlockShop shop) {
         plugin.getShopLogger().log("Player " + player.getName() + " cancelled item " + item.getType().name() + " from shop " + shop.getName());
-        plugin.getItemShopManager().removeShopProperties(item);
+        plugin.getItemShopManager().removeItemShopProperties(item);
         player.getInventory().addItem(item.clone());
         item.setAmount(0);
         player.sendMessage(plugin.getLang().getFrom("shop.item_cancelled", player));
     }
     
-    private void processPurchase(InventoryClickEvent e, Player player, ItemStack item, Shop shop) {
+    private void processPurchase(InventoryClickEvent e, Player player, ItemStack item, BlockShop shop) {
         int amount;
     
         switch (e.getClick()) {

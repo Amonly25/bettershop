@@ -6,12 +6,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import com.ar.askgaming.bettershop.BlockShop;
+import com.ar.askgaming.bettershop.BetterShop;
 
 public class ShopLogger {
 
-    private BlockShop plugin;
-    public ShopLogger(BlockShop main) {
+    private BetterShop plugin;
+    public ShopLogger(BetterShop main) {
         plugin = main;
         enabled = main.getConfig().getBoolean("log", true);
 

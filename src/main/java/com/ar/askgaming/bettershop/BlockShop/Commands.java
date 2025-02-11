@@ -1,4 +1,4 @@
-package com.ar.askgaming.bettershop;
+package com.ar.askgaming.bettershop.BlockShop;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -16,11 +16,17 @@ import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
+import com.ar.askgaming.bettershop.BetterShop;
+
 public class Commands implements TabExecutor {
 
-    private BlockShop plugin;
-    public Commands(BlockShop main) {
+    private BetterShop plugin;
+    private BlockShopManager manager;
+    public Commands(BetterShop main, BlockShopManager manager) {
         plugin = main;
+        this.manager = manager;
+
+        plugin.getServer().getPluginCommand("bshop").setExecutor(this);
     }
 
     @Override
@@ -83,8 +89,6 @@ public class Commands implements TabExecutor {
     //#region createShop
     public void handleCreateShop(Player p, String[] args, Block targetBlock){
 
-        ItemStack item = p.getInventory().getItemInMainHand();
-
         if (transparentMaterials.contains(targetBlock.getType())) {
             return;
         }
@@ -92,23 +96,21 @@ public class Commands implements TabExecutor {
             p.sendMessage("Usage: /shop create <name>");
             return;
         }
-
+        ItemStack item = p.getInventory().getItemInMainHand();
         if (item.getType() == Material.AIR) {
             p.sendMessage(getLang("misc.item_in_hand", p));
             return;
         }
 
-        if (!plugin.getBlockShopManager().hasPermissionAtBlockLocation(p, targetBlock)){
+        if (!manager.hasPermissionAtBlockLocation(p, targetBlock)){
             p.sendMessage(getLang("commands.no_perm", p));
             return;
         }
-
-        for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
-            if (shop.getName().equalsIgnoreCase(args[1])) {
-                p.sendMessage(getLang("shop.exits", p));
-                return;
-            }
-        }
+        BlockShop shop = manager.getByName(args[1].toLowerCase());
+        if (shop != null) {
+            p.sendMessage(getLang("shop.exits", p));
+            return;
+        }           
 
         if (targetBlock.getState() instanceof InventoryHolder) {
             InventoryHolder ih = (InventoryHolder) targetBlock.getState();
@@ -116,11 +118,10 @@ public class Commands implements TabExecutor {
                 p.sendMessage(getLang("shop.double_chest", p));
                 return;
             }
-            plugin.getBlockShopManager().createShop(targetBlock,item, p, args[1]);
+            manager.createShop(targetBlock,item, p, args[1].toLowerCase());
             return;
         }
         p.sendMessage(getLang("shop.must_be_container", p));
-
     }
 
     //#region sellItemShop
@@ -129,41 +130,42 @@ public class Commands implements TabExecutor {
             p.sendMessage("Usage: /shop sell <price_each>");
             return;
         }
-        Shop shop = plugin.getBlockShopManager().getByBlock(targetBlock);
-        if (shop != null) {
-            if (shop.getOnwer().equals(p) || p.hasPermission("shop.admin")) {
-                if (p.getInventory().getItemInMainHand().getType() == Material.AIR) {
-                    p.sendMessage(getLang("misc.item_in_hand", p));
-                    return;
-                }
-                try {
-                    double d = Double.parseDouble(args[1]);
-                    ItemStack i = p.getInventory().getItemInMainHand().clone();
-                    if (plugin.getItemShopManager().addItemShop(shop,p.getInventory().getItemInMainHand(), d)){
-                        p.sendMessage(getLang("shop.add_item", p).replace("{amount}", i.getAmount()+"").replace("{price}", d+""));
-                    }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    p.sendMessage(plugin.getLang().getFrom("commands.invalid_amount",p));
-                }
-            }else{
-                p.sendMessage(getLang("commands.no_perm", p));
-            }
-        } else {
+        BlockShop shop = manager.getByBlock(targetBlock);
+        if (shop == null) {
             p.sendMessage(getLang("shop.not_found", p));
+            return;
+        }
+        if (!manager.hasAdminPermission(p, shop)){
+            p.sendMessage(getLang("commands.no_perm", p));
+            return;
+        }
+        if (p.getInventory().getItemInMainHand().getType() == Material.AIR) {
+            p.sendMessage(getLang("misc.item_in_hand", p));
+            return;
+        }
+        double d;
+        try {
+            d = Double.parseDouble(args[1]);
+        } catch (Exception e) {
+            e.printStackTrace();
+            p.sendMessage(plugin.getLang().getFrom("commands.invalid_amount",p));
+            return;
+        }
+        ItemStack i = p.getInventory().getItemInMainHand().clone();
+        if (manager.addItemShop(p, shop, i, d)){
+            p.sendMessage(getLang("shop.add_item", p).replace("{amount}", i.getAmount()+"").replace("{price}", d+""));
         }
     }
     //#region list
     public void handleList(Player p, String[] args) {
 
-        if (plugin.getBlockShopManager().getShops().isEmpty()) {
+        if (manager.getShops().isEmpty()) {
             p.sendMessage(getLang("shop.not_found", p));
             return;
         }
         if (args.length == 1) {
             p.sendMessage("Shops:");
-            for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
+            for (BlockShop shop : manager.getShops().values()) {
                 if (shop.getOnwer().getUniqueId().equals(p.getUniqueId())) {
                     p.sendMessage(shop.getName());
                 }
@@ -173,7 +175,7 @@ public class Commands implements TabExecutor {
         if (args.length == 2) {
             if (args[1].equalsIgnoreCase("server")) {
                 p.sendMessage("Server Shops:");
-                for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
+                for (BlockShop shop : manager.getShops().values()) {
                     if (shop.isServerShop()) {
                         p.sendMessage(shop.getName());
                     }
@@ -184,7 +186,7 @@ public class Commands implements TabExecutor {
             OfflinePlayer player = plugin.getServer().getOfflinePlayer(args[1]);
             if (player != null) {
                 p.sendMessage("Shops of " + player.getName());
-                for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
+                for (BlockShop shop : manager.getShops().values()) {
                     if (shop.getOnwer().equals(player)) {
                         p.sendMessage(shop.getName());
                     }
@@ -206,7 +208,7 @@ public class Commands implements TabExecutor {
             p.sendMessage(getLang("commands.no_perm", p));
             return;
         }
-        Shop shop = plugin.getBlockShopManager().getByName(args[1]);
+        BlockShop shop = manager.getByName(args[1]);
         if (shop != null) {
            // shop.getInventory().getViewers().forEach(v -> v.closeInventory());
             p.openInventory(shop.getInventory());
@@ -222,16 +224,16 @@ public class Commands implements TabExecutor {
             p.sendMessage("Usage: /shop delete <name>");
             return;
         }
-        Shop shop = plugin.getBlockShopManager().getByName(args[1]);
+        BlockShop shop = manager.getByName(args[1]);
         if (shop == null) {
             p.sendMessage(getLang("shop.not_found", p));
             return;
         }
-        if (!plugin.getBlockShopManager().hasAdminPermission(p, shop)){
+        if (!manager.hasAdminPermission(p, shop)){
             p.sendMessage(getLang("commands.no_perm", p));
             return;
         }
-        plugin.getBlockShopManager().remove(shop);
+        manager.remove(shop);
         p.sendMessage(getLang("shop.deleted", p));
     }
 
@@ -242,15 +244,15 @@ public class Commands implements TabExecutor {
             p.sendMessage("Usage: /shop set <text/item>");
             return;
         }
-        Shop shop = plugin.getBlockShopManager().getByBlock(targetBlock);
+        BlockShop shop = manager.getByBlock(targetBlock);
 
         if (shop == null) {
             p.sendMessage(getLang("shop.not_found", p));
             return;
         }
-        if (!plugin.getBlockShopManager().hasAdminPermission(p, shop)){
-                p.sendMessage(getLang("commands.no_perm", p));
-                return;
+        if (!manager.hasAdminPermission(p, shop)){
+            p.sendMessage(getLang("commands.no_perm", p));
+            return;
         }
 
         StringBuilder descBuilder = new StringBuilder();
@@ -272,13 +274,11 @@ public class Commands implements TabExecutor {
                 }
                 ItemStack item = p.getInventory().getItemInMainHand().clone();
                 item.setAmount(1);
-                shop.setItem(item);
-                plugin.getBlockShopManager().save(shop);
+                manager.setItem(shop, item);
                 break;
             case "text":
                 p.sendMessage(getLang("shop.set_text", p));
-                shop.setText(text);
-                plugin.getBlockShopManager().save(shop);
+                manager.setText(shop, text);
                 break;
  
             case "servershop":
@@ -287,11 +287,10 @@ public class Commands implements TabExecutor {
                     return;
                 }
                 p.sendMessage(getLang("shop.set_server_shop", p));
-                shop.setServerShop(true);
-                plugin.getBlockShopManager().save(shop);
+                manager.setServerShop(shop, true);
                 break;                    
             default:
-                p.sendMessage("Usage: /shop set <title/subtitle/item>");
+                p.sendMessage("Usage: /shop set <text/item>");
                 break;
         }
     }

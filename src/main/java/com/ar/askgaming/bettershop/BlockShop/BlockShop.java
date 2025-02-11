@@ -1,4 +1,4 @@
-package com.ar.askgaming.bettershop;
+package com.ar.askgaming.bettershop.BlockShop;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,10 +19,12 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
+import com.ar.askgaming.bettershop.BetterShop;
 
-public class Shop implements ConfigurationSerializable {
 
-    private BlockShop plugin = BlockShop.getPlugin(BlockShop.class);
+public class BlockShop implements ConfigurationSerializable {
+
+    private BetterShop plugin = BetterShop.getPlugin(BetterShop.class);
 
     private Block blockShop;
     private World world;
@@ -39,7 +41,7 @@ public class Shop implements ConfigurationSerializable {
     private ItemDisplay itemDisplay;
 
     // Constructor created by command
-    public Shop(Block targetBlock, ItemStack itemStack, Player owner, String name) {
+    public BlockShop(Block targetBlock, ItemStack itemStack, Player owner, String name) {
         
         blockShop = targetBlock;
         world = targetBlock.getWorld();
@@ -54,7 +56,7 @@ public class Shop implements ConfigurationSerializable {
     }
 
     // Desrealization
-    public Shop(Map<String, Object> map) {
+    public BlockShop(Map<String, Object> map) {
         name = map.get("name").toString();
         owner = plugin.getServer().getOfflinePlayer(UUID.fromString(map.get("owner").toString()));
         text = map.get("text").toString();
@@ -157,9 +159,9 @@ public class Shop implements ConfigurationSerializable {
         return blockShop;
     }
 
-    public static Shop deserialize(Map<String, Object> map) {
+    public static BlockShop deserialize(Map<String, Object> map) {
         
-        return new Shop(map);
+        return new BlockShop(map);
     }
     
     public boolean isServerShop() {

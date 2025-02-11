@@ -7,13 +7,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
-import com.ar.askgaming.bettershop.BlockShop;
-import com.ar.askgaming.bettershop.Shop;
+import com.ar.askgaming.bettershop.BetterShop;
+import com.ar.askgaming.bettershop.BlockShop.BlockShop;
 
 public class PlayerBlockListener implements Listener{
 
-    private BlockShop plugin;
-    public PlayerBlockListener(BlockShop main) {
+    private BetterShop plugin;
+    public PlayerBlockListener(BetterShop main) {
         plugin = main;
     }
     @EventHandler()
@@ -22,7 +22,7 @@ public class PlayerBlockListener implements Listener{
         Block b = e.getBlock();
         Player p = e.getPlayer();
 
-        for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
+        for (BlockShop shop : plugin.getBlockShopManager().getShops().values()) {
 
             if (shop.getBlockShop().getWorld() != b.getWorld()){
                 continue;

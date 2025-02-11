@@ -6,20 +6,20 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.inventory.Inventory;
 
-import com.ar.askgaming.bettershop.BlockShop;
-import com.ar.askgaming.bettershop.Shop;
+import com.ar.askgaming.bettershop.BetterShop;
+import com.ar.askgaming.bettershop.BlockShop.BlockShop;
 
 public class InventoryMoveItemListener implements Listener {
 
-    private BlockShop plugin;
-    public InventoryMoveItemListener(BlockShop main) {
+    private BetterShop plugin;
+    public InventoryMoveItemListener(BetterShop main) {
         plugin = main;
     }
     @EventHandler()
     public void onMoveItem(InventoryMoveItemEvent e) {
 
         // Only to to detect possible bug
-        for (Shop shop : plugin.getBlockShopManager().getShops().values()) {
+        for (BlockShop shop : plugin.getBlockShopManager().getShops().values()) {
             Inventory inv = shop.getInventory();
 
             if (inv == e.getDestination()){

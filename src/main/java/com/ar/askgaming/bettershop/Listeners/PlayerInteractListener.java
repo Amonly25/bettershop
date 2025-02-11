@@ -7,12 +7,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 
-import com.ar.askgaming.bettershop.BlockShop;
+import com.ar.askgaming.bettershop.BetterShop;
 
 public class PlayerInteractListener implements Listener{
 
-    private BlockShop plugin;
-    public PlayerInteractListener(BlockShop main) {
+    private BetterShop plugin;
+    public PlayerInteractListener(BetterShop main) {
         plugin = main;
     }
     @EventHandler(priority = EventPriority.HIGHEST)

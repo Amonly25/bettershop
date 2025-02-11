@@ -10,28 +10,27 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.ar.askgaming.bettershop.Auctions.Auction;
 import com.ar.askgaming.bettershop.Auctions.AuctionManager;
+import com.ar.askgaming.bettershop.BlockShop.BlockShopManager;
+import com.ar.askgaming.bettershop.BlockShop.Commands;
+import com.ar.askgaming.bettershop.BlockShop.BlockShop;
 import com.ar.askgaming.bettershop.Listeners.BlockBreakListener;
 import com.ar.askgaming.bettershop.Listeners.InventoryInteractListener;
 import com.ar.askgaming.bettershop.Listeners.InventoryMoveItemListener;
 import com.ar.askgaming.bettershop.Listeners.PlayerBlockListener;
 import com.ar.askgaming.bettershop.Listeners.PlayerInteractListener;
-import com.ar.askgaming.bettershop.Managers.DataHandler;
 import com.ar.askgaming.bettershop.Managers.ItemShopManager;
 import com.ar.askgaming.bettershop.Managers.LangManager;
-import com.ar.askgaming.bettershop.Managers.ShopManager;
 import com.ar.askgaming.bettershop.Utilities.ShopLogger;
 import com.ar.askgaming.realisticeconomy.RealisticEconomy;
 
 import net.milkbowl.vault.economy.Economy;
 
+public class BetterShop extends JavaPlugin {
 
-public class BlockShop extends JavaPlugin {
-
-    private ShopManager blockShopManager;
+    private BlockShopManager blockShopManager;
     private ItemShopManager itemShopManager;
     private LangManager langManager;
     private ShopLogger shopLogger;
-    private DataHandler dataHandler;
     private Economy vaultEconomy;
     private RealisticEconomy realisticEconomy;
     private AuctionManager auctionManager;
@@ -40,16 +39,15 @@ public class BlockShop extends JavaPlugin {
         
         saveDefaultConfig();
 
-        ConfigurationSerialization.registerClass(Shop.class,"Shop");
+        ConfigurationSerialization.registerClass(BlockShop.class,"Shop");
         ConfigurationSerialization.registerClass(Auction.class,"Auction");
 
-        dataHandler = new DataHandler(this);
-        
-        blockShopManager = new ShopManager(this);
+        itemShopManager = new ItemShopManager(this);
+
+        blockShopManager = new BlockShopManager(this);
         
         langManager = new LangManager(this);
         shopLogger = new ShopLogger(this);
-        getCommand("shop").setExecutor(new Commands(this));
 
         getServer().getPluginManager().registerEvents(new PlayerBlockListener(this), this);
         getServer().getPluginManager().registerEvents(new BlockBreakListener(this), this);
@@ -85,7 +83,7 @@ public class BlockShop extends JavaPlugin {
             entity.remove();
         }
         
-        for (Shop shop : getBlockShopManager().getShops().values()) {
+        for (BlockShop shop : getBlockShopManager().getShops().values()) {
             shop.getItemDisplay().remove();
             shop.getTextDisplay().remove();
             if (shop.getInventory().getViewers()!=null) {
@@ -96,18 +94,15 @@ public class BlockShop extends JavaPlugin {
             if (shop.getInventory().getContents()!=null) {
                 for (int i = 0; i < shop.getInventory().getContents().length; i++) {
                     if (shop.getInventory().getItem(i) != null) {
-                        getItemShopManager().removeShopLore(shop.getInventory().getItem(i));
+                        getItemShopManager().removeItemShopLore(shop.getInventory().getItem(i));
                     }
                 }
             }
         }
     }
 
-    public ShopManager getBlockShopManager() {
+    public BlockShopManager getBlockShopManager() {
         return blockShopManager;
-    }
-    public DataHandler getDataHandler() {
-        return dataHandler;
     }
     public ItemShopManager getItemShopManager() {
         return itemShopManager;
@@ -120,9 +115,6 @@ public class BlockShop extends JavaPlugin {
     }
     public AuctionManager getAuctionManager() {
         return auctionManager;
-    }
-    public void setItemShopManager(ItemShopManager itemShopManager) {
-        this.itemShopManager = itemShopManager;
     }
     public LangManager getLang() {
         return langManager;

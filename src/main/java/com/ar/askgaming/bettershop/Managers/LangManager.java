@@ -10,12 +10,12 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
-import com.ar.askgaming.bettershop.BlockShop;
+import com.ar.askgaming.bettershop.BetterShop;
 
 public class LangManager {
 
-    private BlockShop plugin;
-    public LangManager(BlockShop plugin) {
+    private BetterShop plugin;
+    public LangManager(BetterShop plugin) {
         this.plugin = plugin;
 
         // Save default lang file from resources if it doesn't exist

@@ -8,12 +8,12 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import com.ar.askgaming.bettershop.BlockShop;
+import com.ar.askgaming.bettershop.BetterShop;
 
 public class Commands implements TabExecutor{
 
-    private BlockShop plugin;
-    public Commands(BlockShop main) {
+    private BetterShop plugin;
+    public Commands(BetterShop main) {
         plugin = main;
 
         plugin.getServer().getPluginCommand("auction").setExecutor(this);

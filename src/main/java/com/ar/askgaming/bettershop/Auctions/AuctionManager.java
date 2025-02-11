@@ -13,15 +13,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import com.ar.askgaming.bettershop.BlockShop;
+import com.ar.askgaming.bettershop.BetterShop;
 
 public class AuctionManager {
 
-    private BlockShop plugin;
+    private BetterShop plugin;
     File file;
     FileConfiguration config;
 
-    public AuctionManager(BlockShop main) {
+    public AuctionManager(BetterShop main) {
         plugin = main;
 
         file = new File(plugin.getDataFolder(), "auctions.yml");
