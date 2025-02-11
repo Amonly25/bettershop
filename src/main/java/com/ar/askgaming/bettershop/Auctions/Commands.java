@@ -40,22 +40,18 @@ public class Commands implements TabExecutor{
 
         switch (args[0].toLowerCase()) {
             case "create":
-                if (args.length < 3) {
-                    p.sendMessage("Usage: /auction create <price> <time_minutes>");
+                if (args.length < 2) {
+                    p.sendMessage("Usage: /auction create <price> ");
                     return true;
                 }
                 double price;
-                int time;
 
                 try {
                     price = Double.parseDouble(args[1]);
-                    time = Integer.parseInt(args[2]);
                 } catch (NumberFormatException e) {
-                    p.sendMessage("Usage: /auction create <price> <time_minutes>");
+                    p.sendMessage("§cPrice must be a number.");
                     return true;
                 }
-
-                price = Math.round(price * 100.0) / 100.0;
 
                 ItemStack item = p.getInventory().getItemInMainHand();
 
@@ -69,12 +65,7 @@ public class Commands implements TabExecutor{
                     return true;
                 }
 
-                if (time <= 0) {
-                    p.sendMessage("§cTime must be greater than 0.");
-                    return true;
-                }
-
-                plugin.getAuctionManager().createAuction(p, price, time, item);
+                plugin.getAuctionManager().createAuction(p, price, 24, item);
 
                 break;
             case "info":

@@ -17,8 +17,13 @@ public class Auction implements ConfigurationSerializable {
     private OfflinePlayer owner;
     private double price;
     private int createdTime;
-
     private int timeLeft;
+
+    private HashMap<String, Double> bets = new HashMap<>();
+
+    public HashMap<String, Double> getBets() {
+        return bets;
+    }
 
     private Inventory inventory;
 
@@ -28,8 +33,7 @@ public class Auction implements ConfigurationSerializable {
         this.timeLeft = timeLeft;
         this.createdTime = (int) System.currentTimeMillis();
         this.item = item;
-        
-        createInventory();
+
     }
     public Auction(Map<String, Object> map) {
         String ownerUUID = (String) map.get("owner");
@@ -39,7 +43,6 @@ public class Auction implements ConfigurationSerializable {
         this.createdTime = (int) map.get("created_time");
         this.timeLeft = (int) map.get("time_left");
         
-        createInventory();
     }
     public Inventory getInventory() {
         return inventory;
@@ -71,10 +74,6 @@ public class Auction implements ConfigurationSerializable {
     public void setCreatedTime(int createdTime) {
         this.createdTime = createdTime;
     }
-    private void createInventory() {
-        inventory = Bukkit.getServer().createInventory(null, 9, owner.getName() + "'s Auction");
-        inventory.addItem(item);
-    }
 
     @Override
     public Map<String, Object> serialize() {
@@ -86,6 +85,6 @@ public class Auction implements ConfigurationSerializable {
         map.put("time_left", timeLeft);
         return map;
         
-
     }
+    
 }
