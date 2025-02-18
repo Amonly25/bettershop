@@ -1,11 +1,10 @@
 max_text_chars: 64
 item_shop:
-  price_text: "§7Price: "
-  seller_text: "§7Seller: "
-  misc_lore:
-  - "§7Right click to buy 1"
-  - "§7Shift + Right click to buy all"
+  lore:
+  - "&7Price: &a${price}"
+  - "&7Right click to buy 1"
+  - "&7Shift + Right click to buy all"
   - ""
-  - "Owner: Click to cancel"
+  - "&7Seller: &a {seller}"
 log: true
 

@@ -86,7 +86,6 @@ public class BlockShopManager {
         if (slot != -1) {
             ItemStack item = itemInMainHand.clone();
             plugin.getItemShopManager().makeItemSellable(player, item, price);
-            itemInMainHand.setAmount(0); // Clear the item in the hand
             shop.getInventory().setItem(slot, item);
             plugin.getShopLogger().log("Item added to shop: " + shop.getName() + " Item: " + item.getType().name() + " Price: " + price + " Amount: " + item.getAmount());
             return true;
@@ -193,6 +192,5 @@ public class BlockShopManager {
         shop.setServerShop(isServerShop);
         config.set(shop.getName(), shop);
         save();
-    }
-    
+    }   
 }

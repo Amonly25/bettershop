@@ -3,6 +3,7 @@ package com.ar.askgaming.bettershop;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Server;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -10,16 +11,18 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.ar.askgaming.bettershop.Auctions.Auction;
 import com.ar.askgaming.bettershop.Auctions.AuctionManager;
-import com.ar.askgaming.bettershop.BlockShop.BlockShopManager;
-import com.ar.askgaming.bettershop.BlockShop.Commands;
 import com.ar.askgaming.bettershop.BlockShop.BlockShop;
+import com.ar.askgaming.bettershop.BlockShop.BlockShopManager;
+import com.ar.askgaming.bettershop.GlobalShop.GlobalShopManager;
 import com.ar.askgaming.bettershop.Listeners.BlockBreakListener;
-import com.ar.askgaming.bettershop.Listeners.InventoryInteractListener;
+import com.ar.askgaming.bettershop.Listeners.InventoryClickListener;
 import com.ar.askgaming.bettershop.Listeners.InventoryMoveItemListener;
 import com.ar.askgaming.bettershop.Listeners.PlayerBlockListener;
 import com.ar.askgaming.bettershop.Listeners.PlayerInteractListener;
 import com.ar.askgaming.bettershop.Managers.ItemShopManager;
+import com.ar.askgaming.bettershop.Managers.ItemShopTransactions;
 import com.ar.askgaming.bettershop.Managers.LangManager;
+import com.ar.askgaming.bettershop.ServerShop.ServerShopManager;
 import com.ar.askgaming.bettershop.Utilities.ShopLogger;
 import com.ar.askgaming.realisticeconomy.RealisticEconomy;
 
@@ -34,8 +37,11 @@ public class BetterShop extends JavaPlugin {
     private Economy vaultEconomy;
     private RealisticEconomy realisticEconomy;
     private AuctionManager auctionManager;
+    private ItemShopTransactions itemShopTransactions;
+    private GlobalShopManager globalShopManager;
+    private ServerShopManager serverShopManager;
 
-    public  void onEnable() {
+    public void onEnable() {
         
         saveDefaultConfig();
 
@@ -43,8 +49,12 @@ public class BetterShop extends JavaPlugin {
         ConfigurationSerialization.registerClass(Auction.class,"Auction");
 
         itemShopManager = new ItemShopManager(this);
+        itemShopTransactions = new ItemShopTransactions(this);
 
         blockShopManager = new BlockShopManager(this);
+        auctionManager = new AuctionManager(this);
+        globalShopManager = new GlobalShopManager(this,"globalshop.yml","GlobalShop");
+        serverShopManager = new ServerShopManager(this,"servershop.yml");
         
         langManager = new LangManager(this);
         shopLogger = new ShopLogger(this);
@@ -52,7 +62,7 @@ public class BetterShop extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerBlockListener(this), this);
         getServer().getPluginManager().registerEvents(new BlockBreakListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryMoveItemListener(this), this);
-        getServer().getPluginManager().registerEvents(new InventoryInteractListener(this), this);
+        getServer().getPluginManager().registerEvents(new InventoryClickListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
 
         //Vault Integration
@@ -100,7 +110,9 @@ public class BetterShop extends JavaPlugin {
             }
         }
     }
-
+    public ServerShopManager getServerShopManager() {
+        return serverShopManager;
+    }
     public BlockShopManager getBlockShopManager() {
         return blockShopManager;
     }
@@ -109,6 +121,12 @@ public class BetterShop extends JavaPlugin {
     }
     public Economy getEconomy() {
         return vaultEconomy;
+    }
+    public GlobalShopManager getGlobalShopManager() {
+        return globalShopManager;
+    }
+    public ItemShopTransactions getItemShopTransactions() {
+        return itemShopTransactions;
     }
     public RealisticEconomy getRealisticEconomy() {
         return realisticEconomy;

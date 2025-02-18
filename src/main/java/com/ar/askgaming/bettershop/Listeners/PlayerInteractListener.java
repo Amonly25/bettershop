@@ -18,16 +18,16 @@ public class PlayerInteractListener implements Listener{
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onInteract(PlayerInteractEvent e) {
 
-        Block b = e.getClickedBlock();
-        if (b == null) {
-            return;
-        }
+        // Block b = e.getClickedBlock();
+        // if (b == null) {
+        //     return;
+        // }
 
-        if (e.getAction() != Action.RIGHT_CLICK_BLOCK) {
-            return;
-        }
-        if (plugin.getBlockShopManager().isShop(b)){
-            e.setCancelled(false);
-        }
+        // if (e.getAction() != Action.RIGHT_CLICK_BLOCK) {
+        //     return;
+        // }
+        // if (plugin.getBlockShopManager().isShop(b)){
+        //     e.setCancelled(false);
+        // }
     }
 }

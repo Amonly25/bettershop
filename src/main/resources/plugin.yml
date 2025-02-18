@@ -1,5 +1,5 @@
-main: com.ar.askgaming.bettershop.BlockShop
-name: BlockShop
+main: com.ar.askgaming.bettershop.BetterShop
+name: BetterShop
 api-version: 1.21
 version: 1
 author: AMONLY
@@ -8,3 +8,9 @@ commands:
   shop:
     description: Open the shop
     aliases: [bs, bshop]
+  globalshop:
+    description: Open the global shop
+    aliases: [gshop, gbs]
+  servershop:
+    description: Open the server shop
+    aliases: [sshop, sshop]

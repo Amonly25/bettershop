@@ -151,9 +151,10 @@ public class Commands implements TabExecutor {
             p.sendMessage(plugin.getLang().getFrom("commands.invalid_amount",p));
             return;
         }
-        ItemStack i = p.getInventory().getItemInMainHand().clone();
+        ItemStack i = p.getInventory().getItemInMainHand();
         if (manager.addItemShop(p, shop, i, d)){
             p.sendMessage(getLang("shop.add_item", p).replace("{amount}", i.getAmount()+"").replace("{price}", d+""));
+            i.setAmount(0);
         }
     }
     //#region list
