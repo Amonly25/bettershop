@@ -7,13 +7,14 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bukkit.Material;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.ar.askgaming.bettershop.BetterShop;
 import com.ar.askgaming.bettershop.Managers.VirtualShopManager;
 
-public class ServerShopManager extends VirtualShopManager {
+public class ServerShopManager extends VirtualShopManager{
 
     public ServerShopManager(BetterShop plugin, String configFileName) {
         super(plugin, configFileName, "ServerShop");
@@ -27,6 +28,7 @@ public class ServerShopManager extends VirtualShopManager {
         loadConfig();
 
         new Commands(plugin, this);
+        new DailyTask(plugin, this);
     }
     
     private Map<Material, Double> basePrices;
@@ -70,24 +72,53 @@ public class ServerShopManager extends VirtualShopManager {
         }
         createInventories();
     }
-    private void addLore(ItemStack item){
+    //#region add_item
+    public void addItem(Material material, double price) {
+        ItemStack item = new ItemStack(material);
+        basePrices.put(material, price);
+        soldItems.put(material, 0);
+        currentPrices.put(material, price);
+        lastPrice.put(material, price);
+        totalSoldItems.put(material, 0);
+        addLore(item);
+        config.set(material.name() + ".basePrice", price);
+        config.set(material.name() + ".soldItems", 0);
+        config.set(material.name() + ".currentPrice", price);
+        config.set(material.name() + ".lastPrice", price);
+        config.set(material.name() + ".totalSoldItems", 0);
+        saveConfig();
+        items.add(item);
+        addItemToInventory(item);
+        
+    }
+    //#region lore
+    public void addLore(ItemStack item){
         ItemMeta meta = item.getItemMeta();
-
+        List<String> configLore = plugin.getConfig().getStringList("server_shop.lore");
         List<String> lore = new ArrayList<>();
-        lore.add("§fCurrent Price: " + currentPrices.get(item.getType()));
-        lore.add("§5Amount Sold: " + totalSoldItems.get(item.getType()));
-        lore.add("§5Price Change: " + percent(lastPrice.get(item.getType()), currentPrices.get(item.getType())));
+
+        for (String t : configLore) {
+            t = t.replace('&', '§');
+            t = t.replace("{price}", String.valueOf(currentPrices.get(item.getType())));   
+            t = t.replace("{percent}", percent(lastPrice.get(item.getType()), currentPrices.get(item.getType())));
+            t = t.replace("{sold}", String.valueOf(totalSoldItems.get(item.getType())));
+            lore.add(t);
+        }
+
         meta.setLore(lore);
         item.setItemMeta(meta);
 
     }
     public String percent(double precioAnterior, double precioActual) {
-        if (precioAnterior == 0) return "0%";
+        if (precioAnterior == 0) return "§f0%";
         double porcentaje = ((precioActual - precioAnterior) / precioAnterior) * 100;
-        return String.format("%+.2f%%", porcentaje); // Incluye + o - en la salida
+        String color = porcentaje >= 0 ? "§a" : "§c"; // Verde si es positivo, rojo si es negativo
+        return color + String.format("%+.2f%%", porcentaje);
     }
+    
 
-    public void updateStats(Material material, int amount){
+    public void updateStats(ItemStack item, int amount){
+        Material material = item.getType();
         int sold = soldItems.get(material) + amount;
         soldItems.put(material, sold);
         config.set(material.name() + ".soldItems", sold);
@@ -100,37 +131,52 @@ public class ServerShopManager extends VirtualShopManager {
             adjustPrice(material, -PRICE_DROP_PERCENTAGE);
             soldItems.put(material, 0); // Reiniciar el contador después de ajustar
         }
-
+        addLore(item);
         saveConfig();
     }
 
     private final int PRICE_DROP_THRESHOLD = 50; // Cada 50 unidades vendidas, baja el precio
-    private final int PRICE_RISE_THRESHOLD = 10; // Si en 24h se venden menos de 10, sube el precio
     private final double PRICE_DROP_PERCENTAGE = 0.10; // Baja un 10%
     private final double PRICE_RISE_PERCENTAGE = 0.05; // Sube un 5%
 
     private void adjustPrice(Material material, double percentage) {
-        double newPrice = currentPrices.get(material) * (1 + percentage);
+        double current = currentPrices.get(material);
+
+        double newPrice = Math.round(current * (1+percentage) * 100.0) / 100.0;
     
         currentPrices.put(material, newPrice);
-        lastPrice.put(material, currentPrices.get(material));
         config.set(material.name() + ".currentPrice", newPrice);
-        config.set(material.name() + ".lastPrice", newPrice);
         
     }
+    
 
     // Método para revisar el mercado cada cierto tiempo (Ej: cada 24h)
     public void dailyPriceAdjustment() {
         for (Material material : basePrices.keySet()) {
-            if (soldItems.get(material) < PRICE_RISE_THRESHOLD) {
+            if (soldItems.get(material) == 0) {
                 adjustPrice(material, PRICE_RISE_PERCENTAGE);
 
             }
-            soldItems.put(material, 0); // Reset diario de ventas
-            config.set(material.name() + ".soldItems", 0);
-
+            for (Inventory inv : inventories.values()) {
+                for (int slot = 0; slot < inv.getSize(); slot++) {
+                    if (slot == 45 || slot == 53) {
+                        continue;
+                    }
+                    ItemStack invItem = inv.getItem(slot);
+                    if (invItem != null && !invItem.getType().isAir()) {
+                        addLore(invItem);
+                    }
+                }
+            }
         }
+        
         saveConfig();
     }
-    
+    public void resetLastPrices() {
+        for (Material material : basePrices.keySet()) {
+            lastPrice.put(material, currentPrices.get(material));
+            config.set(material.name() + ".lastPrice", currentPrices.get(material));
+        }
+        saveConfig();
+    }    
 }

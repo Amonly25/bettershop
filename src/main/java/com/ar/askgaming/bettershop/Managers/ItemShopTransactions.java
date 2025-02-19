@@ -15,7 +15,7 @@ import org.bukkit.inventory.ItemStack;
 
 import com.ar.askgaming.bettershop.BetterShop;
 import com.ar.askgaming.bettershop.BlockShop.BlockShop;
-import com.ar.askgaming.realisticeconomy.Economy.EconomyService;
+import com.ar.askgaming.realisticeconomy.Economy.EconomyTransactions;
 
 public class ItemShopTransactions {
 
@@ -110,7 +110,7 @@ public class ItemShopTransactions {
         return false;
     }
     private boolean processRealisticPayment(Player buyer, UUID seller, double price) {
-        EconomyService economy = plugin.getRealisticEconomy().getEconomyService();
+        EconomyTransactions economy = plugin.getRealisticEconomy().getEconomyService();
 
         if (economy.getBalance(buyer.getUniqueId()) < price) {
             buyer.sendMessage(plugin.getLang().getFrom("shop.no_money", buyer));
@@ -165,60 +165,56 @@ public class ItemShopTransactions {
     
         buyItem(player, item, amount);
     }
- public void processServerShopPurchase(InventoryClickEvent e, Player player, ItemStack item) {
-    // Verificar si el material tiene precio
-    Map<Material, Double> currentPrices = plugin.getServerShopManager().getCurrentPrices();
-    if (!currentPrices.containsKey(item.getType())) {
-        player.sendMessage("Este ítem no se puede vender en la tienda.");
-        return;
-    }
-
-    double pricePerItem = currentPrices.getOrDefault(item.getType(), 0.0);
-    if (pricePerItem <= 0) {
-        player.sendMessage("El precio de este ítem es inválido.");
-        return;
-    }
-
-    int totalAmount = 0;
-    int requiredAmount = (e.getClick() == ClickType.SHIFT_RIGHT) ? -1 : 1;
-    List<ItemStack> itemsToRemove = new ArrayList<>();
-
-    // Recorrer inventario y contar ítems
-    for (ItemStack i : player.getInventory().getContents()) {
-        if (i != null && i.getType() == item.getType()) {
-            if (requiredAmount == -1) { // Vender todo
-                totalAmount += i.getAmount();
-                itemsToRemove.add(i);
-            } else if (totalAmount < requiredAmount) { // Vender cantidad específica
-                totalAmount += i.getAmount();
-                itemsToRemove.add(i);
-                if (totalAmount >= requiredAmount) break;
+    public void processServerShopPurchase(InventoryClickEvent e, Player player, ItemStack item) {
+        if (e.getClick() != ClickType.LEFT && e.getClick() != ClickType.SHIFT_LEFT) {
+            return;
+        }
+        Map<Material, Double> currentPrices = plugin.getServerShopManager().getCurrentPrices();
+        Material itemType = item.getType();
+        
+        if (!currentPrices.containsKey(itemType)) {
+            player.sendMessage("Este ítem no se puede vender en la tienda.");
+            return;
+        }
+        
+        double pricePerItem = currentPrices.get(itemType);
+        if (pricePerItem <= 0) {
+            player.sendMessage("El precio de este ítem es inválido.");
+            return;
+        }
+        
+        int requiredAmount = (e.getClick() == ClickType.SHIFT_LEFT) ? Integer.MAX_VALUE : 1;
+        List<ItemStack> itemsToRemove = new ArrayList<>();
+        int totalAmount = 0;
+        
+        for (ItemStack i : player.getInventory().getContents()) {
+            if (i != null && i.getType() == itemType) {
+                int amount = i.getAmount();
+                if (totalAmount + amount >= requiredAmount) {
+                    itemsToRemove.add(new ItemStack(itemType, requiredAmount - totalAmount));
+                    totalAmount = requiredAmount;
+                    break;
+                } else {
+                    itemsToRemove.add(new ItemStack(itemType, amount));
+                    totalAmount += amount;
+                }
             }
         }
+        
+        if (totalAmount == 0) {
+            player.sendMessage("No tienes suficientes ítems para vender.");
+            return;
+        }
+        
+        double totalPayment = totalAmount * pricePerItem;
+        
+        for (ItemStack toRemove : itemsToRemove) {
+            player.getInventory().removeItem(toRemove);
+        }
+        plugin.getServerShopManager().updateStats(item, totalAmount);
+        player.sendMessage("Vendiste " + totalAmount + " de " + itemType + " por " + totalPayment + " monedas.");
+        
+        // Aquí puedes agregar la lógica para dar el dinero al jugador
     }
-
-    // Si no tiene suficientes ítems, cancelar
-    if (totalAmount <= 0) {
-        player.sendMessage("No tienes suficientes ítems para vender.");
-        return;
-    }
-
-    // Calcular pago total
-    double totalPayment = totalAmount * pricePerItem;
-
-    // Eliminar los ítems vendidos
-    for (ItemStack i : itemsToRemove) {
-        int toRemove = Math.min(i.getAmount(), totalAmount);
-        i.setAmount(i.getAmount() - toRemove);
-        totalAmount -= toRemove;
-        if (totalAmount <= 0) break;
-    }
-
-    // TODO: Agregar dinero al jugador
-    player.sendMessage("Vendiste " + (itemsToRemove.size() > 1 ? "varios ítems" : "un ítem") +
-            " por " + totalPayment + " monedas.");
-}
-
     
-
 }

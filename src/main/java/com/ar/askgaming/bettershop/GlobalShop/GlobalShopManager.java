@@ -34,19 +34,7 @@ public class GlobalShopManager extends VirtualShopManager {
         player.sendMessage("Item added to global shop; " + item.getType().name() + " Price: " + price);
 
     }
-    private void addItemToInventory(ItemStack item) {
 
-        for (Inventory inv : inventories.values()) {
-            if (inv.firstEmpty() != -1 && inv.firstEmpty() != 45 && inv.firstEmpty() != 53) {
-                inv.addItem(item);
-                return;
-            }
-        }
-        Inventory newInv = Bukkit.createInventory(null, 54, "Items " + (inventories.size() + 1));
-        inventories.put(inventories.size(), newInv);
-
-        newInv.addItem(item);
-    }
     public void updateConfig() {
         List<ItemStack> newItems = new ArrayList<>();
         config = new YamlConfiguration();

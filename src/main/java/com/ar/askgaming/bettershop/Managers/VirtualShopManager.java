@@ -123,7 +123,19 @@ public abstract class VirtualShopManager implements Listener {
             player.openInventory(inventories.get(page));
         }
     }
+    protected void addItemToInventory(ItemStack item) {
 
+        for (Inventory inv : inventories.values()) {
+            if (inv.firstEmpty() != -1 && inv.firstEmpty() != 45 && inv.firstEmpty() != 53) {
+                inv.addItem(item);
+                return;
+            }
+        }
+        Inventory newInv = Bukkit.createInventory(null, 54, "Items " + (inventories.size() + 1));
+        inventories.put(inventories.size(), newInv);
+
+        newInv.addItem(item);
+    }
     private int getCurrentPage(Player player) {
         for (Map.Entry<Integer, Inventory> entry : inventories.entrySet()) {
             if (entry.getValue().equals(player.getOpenInventory().getTopInventory())) {

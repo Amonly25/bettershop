@@ -23,6 +23,10 @@ commands:
   no_perm: "&cYou don't have permission to do that!"
   invalid_number: "&cInvalid number!"
 
+server_shop:
+  daily_price_adjustment: "&aNew daily price adjustment has been set to the server shop!"
+
+
 help:
   - "&e/shop create <name> &7- Create a shop, you must look at a chest or a barrel."
   - "&e/shop delete &7- Delete a shop."

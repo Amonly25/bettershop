@@ -1,10 +1,22 @@
-max_text_chars: 64
+max_text_chars: 64 # for blockshops
+
 item_shop:
-  lore:
+  lore: # Lore of the block/global shop items
   - "&7Price: &a${price}"
-  - "&7Right click to buy 1"
-  - "&7Shift + Right click to buy all"
+  - "&7Seller: &6 {seller}"
   - ""
-  - "&7Seller: &a {seller}"
+  - "&8Right click to buy 1"
+  - "&8Shift + Right click to buy all"
+
+server_shop:
+  last_executed_week: 0 # Last week the server shop reset the base prices to calculate the new discount/amplification prices # don't change this value
+  lore: # Lore of the server shop item
+  - "&7Price: &a${price} &f({percent}&f)"
+  - "&7Sold: &6{sold}"
+  - ""
+  - "&8Left Click to sell 1"
+  - "&8Shift left click to sell all"
+
+# All the transactions are logged
 log: true
 

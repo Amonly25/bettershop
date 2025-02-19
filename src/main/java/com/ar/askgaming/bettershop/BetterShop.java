@@ -3,7 +3,6 @@ package com.ar.askgaming.bettershop;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bukkit.Server;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.RegisteredServiceProvider;

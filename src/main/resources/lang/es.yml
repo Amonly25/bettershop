@@ -23,6 +23,9 @@ commands:
   no_perm: "&c¡No tienes permiso para hacer eso!"
   invalid_number: "&c¡Número inválido!"
 
+server_shop:
+  daily_price_adjustment: "&a¡Se ha establecido un nuevo ajuste diario de precios para la tienda del servidor!"
+
 help:
   - "&e/shop create <name> &7- Crear una tienda, debes mirar un cofre o un barril."
   - "&e/shop delete &7- Eliminar una tienda."
