@@ -119,6 +119,10 @@ public abstract class VirtualShopManager implements Listener {
     }
 
     public void openInventory(Player player, int page) {
+        if (inventories.isEmpty()) {
+            player.sendMessage("No items to show");
+            return;
+        }
         if (page >= 0 && page < inventories.size()) {
             player.openInventory(inventories.get(page));
         }
@@ -131,8 +135,9 @@ public abstract class VirtualShopManager implements Listener {
                 return;
             }
         }
-        Inventory newInv = Bukkit.createInventory(null, 54, "Items " + (inventories.size() + 1));
+        Inventory newInv = Bukkit.createInventory(null, 54, name + (inventories.size() + 1));
         inventories.put(inventories.size(), newInv);
+        addNavigationButtons(newInv);
 
         newInv.addItem(item);
     }
@@ -143,5 +148,8 @@ public abstract class VirtualShopManager implements Listener {
             }
         }
         return 0;
+    }
+    public FileConfiguration getConfig() {
+        return config;
     }
 }

@@ -1,93 +1,76 @@
 package com.ar.askgaming.bettershop.Auctions;
 
-import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
-import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import com.ar.askgaming.bettershop.BetterShop;
+import com.ar.askgaming.bettershop.Managers.VirtualShopManager;
 
-public class AuctionManager {
+import net.md_5.bungee.api.chat.hover.content.Item;
+
+public class AuctionManager extends VirtualShopManager{
 
     private BetterShop plugin;
-    File file;
-    FileConfiguration config;
 
     public AuctionManager(BetterShop main) {
+        super(main, "auctions.yml", "Auctions");
         plugin = main;
+        new Task(main, this);
+        loadAuctions();        
 
-        file = new File(plugin.getDataFolder(), "auctions.yml");
-        if (!file.exists()) {
-            plugin.saveResource("auctions.yml", false);
-        }
-        config = YamlConfiguration.loadConfiguration(file);
-
-        Set<String> keys = config.getKeys(false);
-        if (keys == null) {
-            return;
-        }
-        for (String key : keys) {
-            Object obj = config.get(key);
-            if (obj instanceof Auction) {
-                Auction auction = (Auction) obj;
-                auctions.put(auction.getOwner(), auction);
-            }
-        }
-        createInventories();
-
+        new Commands(main, this);
     }
     
-    private HashMap<OfflinePlayer, Auction> auctions = new HashMap<>();
+    private HashMap<String, Auction> auctions = new HashMap<>();
 
-    public HashMap<OfflinePlayer, Auction> getAuctions() {
+    public HashMap<String, Auction> getAuctions() {
         return auctions;
     }  
 
-    private HashMap<Integer, Inventory> inventories = new HashMap<>();
+    public void createAuction(Player player, double price, ItemStack item) {
 
-    public void createAuction(Player player, double price, int time, ItemStack item) {
+        try {
+            ItemStack clone = item.clone();
+            item.setAmount(0);
 
-        if (auctions.containsKey(player)) {
-            player.sendMessage("You already have an auction.");
-            return;
+            String id = getNewID();
+            Auction auction = new Auction(id, player, price, clone);
+            auctions.put(id, auction);
+            config.set(id+"", auction);
+            saveConfig();
+
+            ItemStack clon2 = clone.clone();
+            addLore(clon2, auction);
+            addItemToInventory(clon2);
+            player.sendMessage("Auction created with id: " + auction.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+            player.sendMessage("Error creating auction.");
         }
-
-        ItemStack clone = item.clone();
-        item.setAmount(0);
-
-        Auction auction = new Auction(player, price, time, clone);
-        auctions.put(player, auction);
-        config.set(player.getUniqueId().toString(), auction);
-        saveConfig();
-
-        addItemToInventory(auction);
-
+        
     }
-    private void createInventories() {
-        int size = auctions.size();
-        int pages = size / 54;
-        if (size % 54 != 0) {
-            pages++;
+    
+
+    private String getNewID() {
+        Integer id = 0;
+        while (auctions.containsKey(String.valueOf(id))) {
+            id++;
         }
-        for (int i = 0; i < pages; i++) {
-            Inventory inv = Bukkit.createInventory(null, 54, "Auctions " + (i + 1));
-            inventories.put(i, inv);
-        }
-        for (int i = 0; i < size; i++) {
-            Auction auction = (Auction) auctions.values().toArray()[i];
-            ItemStack item = auction.getItem();
-            int page = i / 54;
-            inventories.get(page).setItem(i % 54, item);
-        } 
+        return id.toString();
     }
+    public Auction getAuctionByID(String id) {
+        return auctions.get(id);
+    }
+
     public void saveConfig() {
         try {
             config.save(file);
@@ -95,26 +78,149 @@ public class AuctionManager {
             e.printStackTrace();
         }
     }
-    public void addItemToInventory(Auction auction) {
-        ItemStack item = auction.getItem();
-        for (Inventory inv : inventories.values()) {
-            if (inv.firstEmpty() != -1) {
-                inv.addItem(item);
-                return;
+    public void deleteAuction(Auction auction) {
+        String id = auction.getId();
+        if (auction.getWinner() == null) {
+            processLosers(auction);
+            Player player = (Player) auction.getOwner();
+            player.sendMessage("Your auction has been cancelled.");
+            int slot = player.getInventory().firstEmpty();
+            if (slot != -1) {
+                player.getInventory().setItem(slot, auction.getItem());
+            } else {
+                player.getWorld().dropItem(player.getLocation(), auction.getItem());
             }
         }
-        Inventory inv = Bukkit.createInventory(null, 54, "Auctions " + (inventories.size() + 1));
-        inventories.put(inventories.size(), inv);
-        inv.addItem(item);
+        auctions.remove(id);
+        updateInventory();
+        config.set(id.toString(), null);
+        saveConfig();
+    }
+    public void loadAuctions() {
+        if (!file.exists()) {
+            plugin.saveResource("auctions.yml", false);
+        }
+        config = YamlConfiguration.loadConfiguration(file);
+        Set<String> keys = config.getKeys(false);
+        if (keys == null) {
+            return;
+        }
+
+        for (String key : keys) {
+            Object obj = config.get(key);
+            if (obj instanceof Auction) {
+                Auction auction = (Auction) obj;
+                
+                auctions.put(key, auction);
+                auction.setId(key);
+            }
+                
+        }
+        updateInventory();        
+
     }
 
-    public Auction getAuctionByItemStack(ItemStack item) {
+    public void updateInventory(){
+        items.clear();
         for (Auction auction : auctions.values()) {
-            if (auction.getItem().equals(item)) {
+            ItemStack item = auction.getItem().clone();
+            addLore(item, auction);
+            items.add(item);
+        }
+        inventories.clear();
+        createInventories();
+    }
+
+    private void addLore(ItemStack item, Auction auction) {
+        ItemMeta meta = item.getItemMeta();
+        List<String> lore = new ArrayList<>();
+        meta.setDisplayName("Auction - " + auction.getOwner().getName());
+        lore.add("Price: " + auction.getNewPrice());
+        lore.add("id: " + auction.getId());
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+    }
+    public void addBet(String id, Player player, double price) {
+        Auction auction = auctions.get(id);
+        auction.getBets().put(player.getName(), price);
+        config.set(id+"", auction);
+        saveConfig();
+    }
+
+    public void processWinner(OfflinePlayer buyer, Auction auction) {
+        OfflinePlayer seller = auction.getOwner();
+        double price = auction.getNewPrice();
+
+        if (buyer.isOnline()) {
+            Player player = (Player) buyer;
+            player.sendMessage("You won the auction for " + price + "!, claim your item!");
+        }
+        if (seller.isOnline()) {
+            Player player = (Player) seller;
+            player.sendMessage("Your auction was won by " + buyer.getName() + " for " + price + "!");
+        } 
+        if (plugin.getEconomy() != null) {
+            plugin.getEconomy().depositPlayer(seller, price);
+        }
+        
+    }
+    public boolean isAuctionInventory(Inventory inv) {
+        for (Auction auction : auctions.values()) {
+            if (auction.getInv().equals(inv)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public Auction getAuctionByInventory(Inventory inv) {
+        for (Auction auction : auctions.values()) {
+            if (auction.getInv().equals(inv)) {
                 return auction;
             }
         }
         return null;
     }
 
+    private void processLosers(Auction auction) {
+        for (String name : auction.getBets().keySet()) {
+            if (name.equals(auction.getWinner().getName())) {
+                continue;
+            }
+            OfflinePlayer player = plugin.getServer().getOfflinePlayer(name);
+            if (player.isOnline()) {
+                Player p = (Player) player;
+                p.sendMessage("You lost the auction for " + auction.getNewPrice() + "!");
+            }
+            if (plugin.getEconomy() != null) {
+                plugin.getEconomy().depositPlayer(player, auction.getBets().get(name));
+            }
+        }
+    }
+
+    public void endAction(String id) {
+        Auction auction = auctions.get(id);
+        auction.setHasEnded(true);
+        OfflinePlayer winne = getHighestBet(id);
+        if (winne != null) {
+            auction.setWinner(winne);
+            processWinner(winne, auction);
+            processLosers(auction);
+        }
+        config.set(id+"", auction);
+        saveConfig();
+    }
+    public OfflinePlayer getHighestBet(String id) {
+        Auction auction = auctions.get(id);
+        double highest = 0;
+        OfflinePlayer player = null;
+        for (String name : auction.getBets().keySet()) {
+            double bet = auction.getBets().get(name);
+            if (bet > highest) {
+                highest = bet;
+                player = plugin.getServer().getOfflinePlayer(name);
+            }
+        }
+        return player;
+    }
+    
 }

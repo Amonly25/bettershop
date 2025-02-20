@@ -1,5 +1,7 @@
 package com.ar.askgaming.bettershop.Listeners;
 
+import java.util.List;
+
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -7,8 +9,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import com.ar.askgaming.bettershop.BetterShop;
+import com.ar.askgaming.bettershop.Auctions.Auction;
 import com.ar.askgaming.bettershop.BlockShop.BlockShop;
 import com.ar.askgaming.bettershop.Managers.ItemShopTransactions.ShopType;
 
@@ -45,13 +49,48 @@ public class InventoryClickListener implements Listener{
             || plugin.getGlobalShopManager().isGlobalShopInventory(clickedInventory)) {
                 shopType = ShopType.GLOBAL;
 
-        } else if (plugin.getServerShopManager().isShopInventory(eventInventory) || 
+        } else if (plugin.getAuctionManager().isAuctionInventory(eventInventory) || 
+            plugin.getAuctionManager().isAuctionInventory(clickedInventory)) {
+                e.setCancelled(true);
+                return;
+        
+        }
+        else if (plugin.getTradeManager().isTradeInvensory(eventInventory) || 
+            plugin.getTradeManager().isTradeInvensory(clickedInventory)) {
+                e.setCancelled(true);
+                return;
+        
+        }  else if (plugin.getAuctionManager().isShopInventory(eventInventory) || 
+            plugin.getAuctionManager().isShopInventory(clickedInventory)) {
+                e.setCancelled(true);
+                ItemMeta meta = item.getItemMeta();
+                if (!meta.hasLore()) {
+                    return;
+                }
+                List<String> lore = item.getItemMeta().getLore();
+                for (String s : lore) {
+                    String[] split = s.split(" ");
+                    if (split.length < 2) {
+                        continue; // Evita errores si la línea no tiene suficientes palabras
+                    }
+                    
+                    if (split[0].contains("id:")) {
+                        Auction auction = plugin.getAuctionManager().getAuctionByID(split[1]);
+                        if (auction == null) {
+                            return;
+                        }
+                        player.openInventory(auction.getInv());
+                    }
+                }
+                return;
+            
+        }else if (plugin.getServerShopManager().isShopInventory(eventInventory) || 
             plugin.getServerShopManager().isShopInventory(clickedInventory)) {
                 plugin.getItemShopTransactions().processServerShopPurchase(e, player,item);
                 e.setCancelled(true);
                 return;
 
-        } else {
+        }  else {
     
             for (BlockShop s : plugin.getBlockShopManager().getShops().values()) {
                 Inventory shopInventory = s.getInventory();

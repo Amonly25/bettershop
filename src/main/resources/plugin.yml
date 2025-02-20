@@ -14,3 +14,9 @@ commands:
   servershop:
     description: Open the server shop
     aliases: [sshop, sshop]
+  auction:
+    description: Open the auction
+    aliases: [auc]
+  trade:
+    description: Open the trade
+    aliases: [tr]

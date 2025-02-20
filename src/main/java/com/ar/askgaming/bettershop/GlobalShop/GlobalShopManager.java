@@ -64,16 +64,6 @@ public class GlobalShopManager extends VirtualShopManager {
 
     // Método para manejar clics en los botones de navegación
 
-    public void openInventory(Player player, int page) {
-        if (inventories.isEmpty()) {
-            player.sendMessage("No items to show");
-            return;
-        }
-        if (page >= 0 && page < inventories.size()) {
-            player.openInventory(inventories.get(page));
-        }
-    }
-
     public int getAmountItemsPublished(Player player) {
         int amount = 0;
         for (ItemStack item : items) {

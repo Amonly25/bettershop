@@ -16,12 +16,14 @@ import com.ar.askgaming.bettershop.GlobalShop.GlobalShopManager;
 import com.ar.askgaming.bettershop.Listeners.BlockBreakListener;
 import com.ar.askgaming.bettershop.Listeners.InventoryClickListener;
 import com.ar.askgaming.bettershop.Listeners.InventoryMoveItemListener;
+import com.ar.askgaming.bettershop.Listeners.OpenInventoryListener;
 import com.ar.askgaming.bettershop.Listeners.PlayerBlockListener;
 import com.ar.askgaming.bettershop.Listeners.PlayerInteractListener;
 import com.ar.askgaming.bettershop.Managers.ItemShopManager;
 import com.ar.askgaming.bettershop.Managers.ItemShopTransactions;
 import com.ar.askgaming.bettershop.Managers.LangManager;
 import com.ar.askgaming.bettershop.ServerShop.ServerShopManager;
+import com.ar.askgaming.bettershop.Trade.TradeManager;
 import com.ar.askgaming.bettershop.Utilities.ShopLogger;
 import com.ar.askgaming.realisticeconomy.RealisticEconomy;
 
@@ -39,6 +41,7 @@ public class BetterShop extends JavaPlugin {
     private ItemShopTransactions itemShopTransactions;
     private GlobalShopManager globalShopManager;
     private ServerShopManager serverShopManager;
+    private TradeManager tradeManager;
 
     public void onEnable() {
         
@@ -54,6 +57,7 @@ public class BetterShop extends JavaPlugin {
         auctionManager = new AuctionManager(this);
         globalShopManager = new GlobalShopManager(this,"globalshop.yml","GlobalShop");
         serverShopManager = new ServerShopManager(this,"servershop.yml");
+        tradeManager = new TradeManager(this);
         
         langManager = new LangManager(this);
         shopLogger = new ShopLogger(this);
@@ -63,6 +67,8 @@ public class BetterShop extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new InventoryMoveItemListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryClickListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
+
+        new OpenInventoryListener(this);
 
         //Vault Integration
 
@@ -108,6 +114,9 @@ public class BetterShop extends JavaPlugin {
                 }
             }
         }
+    }
+    public TradeManager getTradeManager() {
+        return tradeManager;
     }
     public ServerShopManager getServerShopManager() {
         return serverShopManager;
