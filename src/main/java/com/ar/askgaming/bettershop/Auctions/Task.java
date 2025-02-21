@@ -25,7 +25,7 @@ public class Task extends BukkitRunnable{
                     auctionManager.processWinner(winner, auction);
 
                 } 
-                auctionManager.endAction(auction.getId());
+                auctionManager.endAction(auction);
             } else {
                 auction.setTimeLeft(time - 1000*60);
                 auctionManager.getConfig().set(auction.getId()+"", auction);

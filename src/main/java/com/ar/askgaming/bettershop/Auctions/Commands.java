@@ -23,7 +23,7 @@ public class Commands implements TabExecutor{
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return List.of("info", "create", "bet", "set_item");
+            return List.of("create", "bet", "delete", "claim", "open", "list");
         } else return null;
     }
 
@@ -79,7 +79,6 @@ public class Commands implements TabExecutor{
                 String id = args[1];
                 double bet;
                 try {
-
                     bet = Double.parseDouble(args[2]);
                 } catch (NumberFormatException e) {
                     p.sendMessage("§cId and price must be numbers.");
@@ -107,14 +106,15 @@ public class Commands implements TabExecutor{
                     p.sendMessage("§cYou can't bet less than your current bet.");
                     return true;
                 }
+                double moneyNeeded = bet - playerBet;
                 if (plugin.getEconomy() != null) {
-                    if (!plugin.getEconomy().has(p, bet)) {
+                    if (!plugin.getEconomy().has(p, moneyNeeded)) {
                         p.sendMessage("§cYou don't have enough money.");
                         return true;
                     }
-                    plugin.getEconomy().withdrawPlayer(p, bet);
+                    plugin.getEconomy().withdrawPlayer(p, moneyNeeded);
                     manager.addBet(id, p, bet);
-                    p.sendMessage("§aBet added successfully for " + bet + "!");
+                    p.sendMessage("§aBet added successfully for " + bet + "!"); 
                 }
                 break;
             case "delete":
@@ -141,7 +141,29 @@ public class Commands implements TabExecutor{
                 p.sendMessage("§aAuction deleted successfully.");
 
                 break;
+            case "end":
+                if (args.length < 2) {
+                    p.sendMessage("Usage: /auction end <id>");
+                    return true;
+                }
 
+                Auction auction5 = manager.getAuctionByID(args[1]);
+                if (auction5 == null) {
+                    p.sendMessage("§cAuction not found.");
+                    return true;
+                }
+                if (!auction5.getOwner().equals(p)) {
+                    p.sendMessage("§cYou can't end an auction that is not yours.");
+                    return true;
+                }
+                if (auction5.getWinner() == null) {
+                    p.sendMessage("§cYou can't end an auction that has no winner.");
+                    return true;
+                }
+                manager.endAction(auction5);
+                p.sendMessage("§aAuction ended successfully.");
+
+                break;
             case "claim":
                 if (args.length < 2) {
                     p.sendMessage("Usage: /auction claim <id>");
@@ -183,4 +205,5 @@ public class Commands implements TabExecutor{
 
         return true;
     }
+
 }

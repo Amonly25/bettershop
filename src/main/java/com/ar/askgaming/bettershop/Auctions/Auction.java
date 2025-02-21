@@ -90,7 +90,7 @@ public class Auction implements ConfigurationSerializable {
         ItemStack bets = new ItemStack(Material.PAPER);
         ItemMeta metaBets = bets.getItemMeta();
         metaBets.setDisplayName("Bets List");
-        List<String> loreBets = metaBets.getLore();
+        List<String> loreBets = new ArrayList<>();
         for (String key : this.bets.keySet()) {
             loreBets.add(key + " - " + this.bets.get(key));
         }

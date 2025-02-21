@@ -19,10 +19,12 @@ import com.ar.askgaming.bettershop.Listeners.InventoryMoveItemListener;
 import com.ar.askgaming.bettershop.Listeners.OpenInventoryListener;
 import com.ar.askgaming.bettershop.Listeners.PlayerBlockListener;
 import com.ar.askgaming.bettershop.Listeners.PlayerInteractListener;
+import com.ar.askgaming.bettershop.Listeners.PlayerQuitListener;
 import com.ar.askgaming.bettershop.Managers.ItemShopManager;
 import com.ar.askgaming.bettershop.Managers.ItemShopTransactions;
 import com.ar.askgaming.bettershop.Managers.LangManager;
 import com.ar.askgaming.bettershop.ServerShop.ServerShopManager;
+import com.ar.askgaming.bettershop.Trade.Trade;
 import com.ar.askgaming.bettershop.Trade.TradeManager;
 import com.ar.askgaming.bettershop.Utilities.ShopLogger;
 import com.ar.askgaming.realisticeconomy.RealisticEconomy;
@@ -69,29 +71,29 @@ public class BetterShop extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
 
         new OpenInventoryListener(this);
+        new PlayerQuitListener(this);
 
         //Vault Integration
 
         if (getServer().getPluginManager().isPluginEnabled("RealisticEconomy")) {
+            getLogger().info("RealisticEconomy found!");
             realisticEconomy = (RealisticEconomy) getServer().getPluginManager().getPlugin("RealisticEconomy");
-        } else {
-            if (getServer().getPluginManager().isPluginEnabled("Vault")) {
-                getLogger().info("Vault found!");
-                RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-                if (rsp == null) {
-                    getLogger().info("Non economy plugin found! disabling plugin");
-                    //getServer().getPluginManager().disablePlugin(this);
-                } else {
-                    vaultEconomy = rsp.getProvider();
-                    getLogger().info("Vault Economy found!");
-                }
-    
-            } else {
-                getLogger().info("Vault not found! disabling plugin");
-                //getServer().getPluginManager().disablePlugin(this);
-                return;
-            }
         }
+        if (getServer().getPluginManager().isPluginEnabled("Vault")) {
+            RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+            if (rsp == null) {
+                getLogger().info("Non economy plugin found!");
+                //getServer().getPluginManager().disablePlugin(this);
+            } else {
+                vaultEconomy = rsp.getProvider();
+                getLogger().info("Vault Economy found!");
+            }
+
+        } else {
+            getLogger().info("Vault not found!");
+            return;
+        }
+        
     }
     public void onDisable() {
         for (Entity entity : protectedEntities) {
@@ -113,6 +115,11 @@ public class BetterShop extends JavaPlugin {
                     }
                 }
             }
+        }
+
+        for (Trade trade : getTradeManager().getTrades()) {
+            tradeManager.giveItem(trade, trade.getCreator());
+            
         }
     }
     public TradeManager getTradeManager() {

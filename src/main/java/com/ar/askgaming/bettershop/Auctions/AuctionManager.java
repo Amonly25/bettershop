@@ -96,6 +96,7 @@ public class AuctionManager extends VirtualShopManager{
         config.set(id.toString(), null);
         saveConfig();
     }
+  
     public void loadAuctions() {
         if (!file.exists()) {
             plugin.saveResource("auctions.yml", false);
@@ -180,16 +181,18 @@ public class AuctionManager extends VirtualShopManager{
         }
         return null;
     }
-
+    //#region end auction
     private void processLosers(Auction auction) {
         for (String name : auction.getBets().keySet()) {
-            if (name.equals(auction.getWinner().getName())) {
+            Player winner = (Player) auction.getWinner();
+            if (winner != null && name.equals(winner.getName())) {
                 continue;
             }
+
             OfflinePlayer player = plugin.getServer().getOfflinePlayer(name);
             if (player.isOnline()) {
                 Player p = (Player) player;
-                p.sendMessage("You lost the auction for " + auction.getNewPrice() + "!");
+                p.sendMessage("You lost the auction from " + auction.getOwner().getName() + " you will be refunded.");
             }
             if (plugin.getEconomy() != null) {
                 plugin.getEconomy().depositPlayer(player, auction.getBets().get(name));
@@ -197,16 +200,16 @@ public class AuctionManager extends VirtualShopManager{
         }
     }
 
-    public void endAction(String id) {
-        Auction auction = auctions.get(id);
+    public void endAction(Auction auction) {
+        
         auction.setHasEnded(true);
-        OfflinePlayer winne = getHighestBet(id);
+        OfflinePlayer winne = getHighestBet(auction.getId());
         if (winne != null) {
             auction.setWinner(winne);
             processWinner(winne, auction);
             processLosers(auction);
         }
-        config.set(id+"", auction);
+        config.set(auction.getId()+"", auction);
         saveConfig();
     }
     public OfflinePlayer getHighestBet(String id) {
