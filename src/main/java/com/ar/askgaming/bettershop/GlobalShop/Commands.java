@@ -64,27 +64,29 @@ public class Commands implements TabExecutor {
         try {
             price = Double.parseDouble(args[1]);
         } catch (Exception e) {
-            player.sendMessage("§cInvalid price.");
+            player.sendMessage(plugin.getLang().getFrom("commands.invalid_number", player));
             return;
         }
 
         ItemStack item = player.getInventory().getItemInMainHand();
         if (item == null || item.getType().isAir()) {
-            player.sendMessage("§cYou must hold an item in your hand.");
+            player.sendMessage(plugin.getLang().getFrom("misc.item_in_hand", player));
             return;
         }
         int amountItemsPublished = globalShopManager.getAmountItemsPublished(player);
-        String permission = "bettershop.globalshop."+amountItemsPublished+1;
         boolean hasPermission = false;
-
-        for (int i = 0; i < 100; i++) {
-            hasPermission = player.hasPermission(permission);
-            if (hasPermission) {
+        
+        // Recorremos desde amountItemsPublished + 1 hasta 1 buscando el permiso más alto que el jugador tenga
+        for (int i = amountItemsPublished + 1; i >= 1; i--) {
+            String permission = "bettershop.globalshop." + i;
+            if (player.hasPermission(permission)) {
+                hasPermission = true;
                 break;
             }
         }
+        
         if (!hasPermission) {
-            player.sendMessage("§cYou have reached the maximum number of items you can sell.");
+            player.sendMessage(plugin.getLang().getFrom("global_shop.max_items", player));
             return;
         }
 

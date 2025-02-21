@@ -11,6 +11,7 @@ shop:
   set_text: "&a¡Texto de la tienda configurado!"
   set_server_shop: "&a¡Tienda configurada como tienda del servidor!"
   double_chest: "&c¡Debes usar un cofre simple!"
+
 misc:
   item_in_hand: "&c¡Debes tener un artículo en la mano!"
   no_space: "&c¡Tu inventario está lleno!"
@@ -18,10 +19,38 @@ misc:
   cant_use_double_chest: "&c¡No puedes usar un cofre doble, presiona shift para colocar otro!"
   error_buying: "&c¡Error al comprar el artículo!"
   chars_limit: "&c¡Has alcanzado el número máximo de caracteres: {max}"
+  not_to_yourself: "&c¡No puedes vender a ti mismo!"
 
 commands:
   no_perm: "&c¡No tienes permiso para hacer eso!"
   invalid_number: "&c¡Número inválido!"
+
+trade:
+  not_found: "&c¡Jugador no encontrado!"
+  too_far: "&c¡El jugador está demasiado lejos!"
+  click_to_see: "&aClick para ver."
+  request: "&a¡Has enviado una solicitud de comercio a {player}!"
+  request_received: "&a¡Has recibido una solicitud de comercio de {player}, "
+  failed_no_money: "&c¡El trade fallo, el comprador no tiene suficiente dinero!"
+  on_payment: "&a¡Trade realizado, has pagado {price}!"
+  on_receive: "&a¡Trade realizado, has recibido {price}!"
+  cancelled: "&c¡Trade cancelado!"
+
+auction:
+  not_found: "&c¡Subasta no encontrada!"
+  must_be_higher: "&c¡Debes ofertar más alto que el precio actual!"
+  bid: "&a¡Has ofertado {price}!"
+  cant_delete: "&c¡No puedes eliminar una subasta sin reclamar!"
+  deleted: "&a¡Subasta eliminada!"
+  claimed: "&a¡Has reclamado la subasta!"
+  end: "&a¡Subasta finalizada, {player} ha ganado con {price}!"
+  lost: "&c¡Has perdido la subasta, dinero devuelto!"
+  won: "&a{player} ha ganado la subasta de {seller} con {price}!"
+  created: "&a{player} ha creado una subasta de {price}!"
+
+global_shop:
+  item_added: "&a¡Has agregado {item} por {price} a la tienda global!"
+  max_items: "&c¡Has alcanzado el límite de artículos en la tienda global!"
 
 server_shop:
   daily_price_adjustment: "&a¡Se ha establecido un nuevo ajuste diario de precios para la tienda del servidor!"

@@ -156,5 +156,9 @@ public class BetterShop extends JavaPlugin {
         return shopLogger;
     }
     public List<Entity> protectedEntities = new ArrayList<>();
+
+    public static BetterShop getInstance() {
+        return BetterShop.getPlugin(BetterShop.class);
+    }
     
 }

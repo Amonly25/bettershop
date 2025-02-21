@@ -15,7 +15,11 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.ar.askgaming.bettershop.BetterShop;
+
 public class Auction implements ConfigurationSerializable {
+
+    private BetterShop plugin = BetterShop.getInstance();
 
     private ItemStack item;
     private OfflinePlayer owner;
@@ -76,20 +80,24 @@ public class Auction implements ConfigurationSerializable {
     public void updateOrCreateItems() {
         ItemStack item = new ItemStack(Material.PAPER);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("Bet Info");
-        List<String> lore = new ArrayList<>();
-        lore.add("Current Price: " + newPrice);
-        lore.add("Base Price: " + basePrice);
-        lore.add("Time Left: " + getTimeLeftFormatted());
-        lore.add("Ended: " + hasEnded);
-        meta.setLore(lore);
+        meta.setDisplayName("§6Info");
+        List<String> lore = plugin.getConfig().getStringList("auctions.info_lore");
+        List<String> newLore = new ArrayList<>();
+        for (String s : lore) {
+            s = s.replace("{owner}", owner.getName());
+            s = s.replace("{price}", String.valueOf(basePrice));
+            s = s.replace("{time}", getTimeLeftFormatted());
+            s = s.replace("{ended}", String.valueOf(hasEnded));
+            newLore.add(s);
+        }
+        meta.setLore(newLore);
         item.setItemMeta(meta);
 
         inv.setItem(5, item);
 
         ItemStack bets = new ItemStack(Material.PAPER);
         ItemMeta metaBets = bets.getItemMeta();
-        metaBets.setDisplayName("Bets List");
+        metaBets.setDisplayName(plugin.getConfig().getString("auctions.bets_name").replace('&', '§'));
         List<String> loreBets = new ArrayList<>();
         for (String key : this.bets.keySet()) {
             loreBets.add(key + " - " + this.bets.get(key));

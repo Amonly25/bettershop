@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -14,8 +15,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.ar.askgaming.bettershop.BetterShop;
 import com.ar.askgaming.bettershop.Managers.VirtualShopManager;
-
-import net.md_5.bungee.api.chat.hover.content.Item;
 
 public class AuctionManager extends VirtualShopManager{
 
@@ -35,7 +34,11 @@ public class AuctionManager extends VirtualShopManager{
     public HashMap<String, Auction> getAuctions() {
         return auctions;
     }  
+    private String getLang(String key, Player player) {
+        return plugin.getLang().getFrom(key, player);
+    }
 
+    //#region create
     public void createAuction(Player player, double price, ItemStack item) {
 
         try {
@@ -51,7 +54,10 @@ public class AuctionManager extends VirtualShopManager{
             ItemStack clon2 = clone.clone();
             addLore(clon2, auction);
             addItemToInventory(clon2);
-            player.sendMessage("Auction created with id: " + auction.getId());
+            for (Player pl: Bukkit.getOnlinePlayers()){
+                pl.sendMessage(getLang("auction.created", pl).replace("{player}", player.getName()).replace("{price}", String.valueOf(price)));
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             player.sendMessage("Error creating auction.");
@@ -59,7 +65,6 @@ public class AuctionManager extends VirtualShopManager{
         
     }
     
-
     private String getNewID() {
         Integer id = 0;
         while (auctions.containsKey(String.valueOf(id))) {
@@ -78,12 +83,12 @@ public class AuctionManager extends VirtualShopManager{
             e.printStackTrace();
         }
     }
+    //#region delete
     public void deleteAuction(Auction auction) {
         String id = auction.getId();
         if (auction.getWinner() == null) {
             processLosers(auction);
             Player player = (Player) auction.getOwner();
-            player.sendMessage("Your auction has been cancelled.");
             int slot = player.getInventory().firstEmpty();
             if (slot != -1) {
                 player.getInventory().setItem(slot, auction.getItem());
@@ -97,6 +102,7 @@ public class AuctionManager extends VirtualShopManager{
         saveConfig();
     }
   
+    //#region load
     public void loadAuctions() {
         if (!file.exists()) {
             plugin.saveResource("auctions.yml", false);
@@ -118,9 +124,9 @@ public class AuctionManager extends VirtualShopManager{
                 
         }
         updateInventory();        
-
     }
 
+    //#region update
     public void updateInventory(){
         items.clear();
         for (Auction auction : auctions.values()) {
@@ -132,6 +138,7 @@ public class AuctionManager extends VirtualShopManager{
         createInventories();
     }
 
+    //#region add
     private void addLore(ItemStack item, Auction auction) {
         ItemMeta meta = item.getItemMeta();
         List<String> lore = new ArrayList<>();
@@ -148,18 +155,15 @@ public class AuctionManager extends VirtualShopManager{
         saveConfig();
     }
 
+    //#region process
     public void processWinner(OfflinePlayer buyer, Auction auction) {
         OfflinePlayer seller = auction.getOwner();
         double price = auction.getNewPrice();
 
-        if (buyer.isOnline()) {
-            Player player = (Player) buyer;
-            player.sendMessage("You won the auction for " + price + "!, claim your item!");
+        for (Player pl: Bukkit.getOnlinePlayers()){
+            pl.sendMessage(getLang("auction.won", pl).replace("{player}", buyer.getName()).replace("{price}", String.valueOf(price)).replace("{seller}", seller.getName()));
         }
-        if (seller.isOnline()) {
-            Player player = (Player) seller;
-            player.sendMessage("Your auction was won by " + buyer.getName() + " for " + price + "!");
-        } 
+ 
         if (plugin.getEconomy() != null) {
             plugin.getEconomy().depositPlayer(seller, price);
         }
@@ -192,7 +196,7 @@ public class AuctionManager extends VirtualShopManager{
             OfflinePlayer player = plugin.getServer().getOfflinePlayer(name);
             if (player.isOnline()) {
                 Player p = (Player) player;
-                p.sendMessage("You lost the auction from " + auction.getOwner().getName() + " you will be refunded.");
+                p.sendMessage(getLang("auction.lost", p));
             }
             if (plugin.getEconomy() != null) {
                 plugin.getEconomy().depositPlayer(player, auction.getBets().get(name));
@@ -200,6 +204,7 @@ public class AuctionManager extends VirtualShopManager{
         }
     }
 
+    //#region end
     public void endAction(Auction auction) {
         
         auction.setHasEnded(true);
@@ -209,6 +214,7 @@ public class AuctionManager extends VirtualShopManager{
             processWinner(winne, auction);
             processLosers(auction);
         }
+        
         config.set(auction.getId()+"", auction);
         saveConfig();
     }

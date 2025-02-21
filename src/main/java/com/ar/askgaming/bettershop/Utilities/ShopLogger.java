@@ -22,7 +22,6 @@ public class ShopLogger {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            
         }
     }
     private boolean enabled;

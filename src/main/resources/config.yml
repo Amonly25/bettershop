@@ -17,6 +17,17 @@ server_shop:
   - "&8Left Click to sell 1"
   - "&8Shift left click to sell all"
 
+auctions:
+  bets_name: "&2Bid List"
+  info_lore": # Lore on te preview of the auction item
+  - "&7Current Price: &a${price}"
+  - "&7Base price: &6{price}"
+  - "&7Time left: &6{time}"
+  - "&7Active: &6{active}"
+
+trade:
+  max_distance: 16 # Max distance to trade - Only if players are in the same world
+
 # All the transactions are logged
 log: true
 

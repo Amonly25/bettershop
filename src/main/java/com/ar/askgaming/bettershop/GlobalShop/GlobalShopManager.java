@@ -31,7 +31,7 @@ public class GlobalShopManager extends VirtualShopManager {
         config.set(System.currentTimeMillis()+"", item);
         saveConfig();
         itemInMainHand.setAmount(0);
-        player.sendMessage("Item added to global shop; " + item.getType().name() + " Price: " + price);
+        player.sendMessage(plugin.getLang().getFrom("global_shop.item_added", player).replace("{price}", String.valueOf(price)).replace("{item}", item.getType().name()));
 
     }
 

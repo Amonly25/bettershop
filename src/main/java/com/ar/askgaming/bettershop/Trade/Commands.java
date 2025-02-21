@@ -27,6 +27,9 @@ public class Commands implements TabExecutor{
         }
         return null;
     }
+    private String getLang(String key, Player player) {
+        return plugin.getLang().getFrom(key, player);
+    }
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
@@ -40,9 +43,6 @@ public class Commands implements TabExecutor{
         switch (args[0].toLowerCase()) {
             case "accept":
                 acceptTrade(player, args);
-                break;
-            case "test":
-                player.sendMessage("Test command");
                 break;
             case "see":
                 seeTrade(player, args);
@@ -67,19 +67,18 @@ public class Commands implements TabExecutor{
         }
         ItemStack item = player.getInventory().getItemInMainHand();
         if (item == null || item.getType().isAir()) {
-            player.sendMessage("You must hold an item in your hand.");
+            player.sendMessage(getLang("misc.item_in_hand", player));
             return;
         }
         double price;
         try {
             price = Double.parseDouble(args[1]);
         } catch (NumberFormatException e) {
-            player.sendMessage("Price must be a number.");
+            player.sendMessage(getLang("commands.invalid_number", player));
             return;
         }
         tradeManager.createTrade(player, target, item.clone(), price);
         item.setAmount(0);
-        player.sendMessage("Trade request sent.");
     }
     private void acceptTrade(Player player, String[] args) {
 
@@ -99,7 +98,7 @@ public class Commands implements TabExecutor{
                 return;
             }
         }
-        player.sendMessage("No trade request found.");
+        player.sendMessage(getLang("trade.not_found", player));
     }
     private void seeTrade(Player player, String[] args) {
 
@@ -117,24 +116,24 @@ public class Commands implements TabExecutor{
                 player.openInventory(trade.getInventory());
             }
         }
-        player.sendMessage("No trade request found.");
+        player.sendMessage(getLang("trade.not_found", player));
     }
     private Player canTrade(Player player, String targetName) {
         Player target = Bukkit.getPlayer(targetName);
         if (target == null) {
-            player.sendMessage("Player not found.");
+            player.sendMessage(getLang("trade.not_found", player));
             return null;
         }
         if (target == player) {
-            player.sendMessage("You can't trade with yourself.");
+            player.sendMessage(getLang("misc.not_to_yourself", player));
             return null;
         }
         if (player.getWorld() != target.getWorld()) {
-            player.sendMessage("Player is in a different world.");
+            player.sendMessage(getLang("trade.too_far", player));
             return null;
         }
-        if (target.getLocation().distance(player.getLocation()) > 16){
-            player.sendMessage("Player is too far away.");
+        if (target.getLocation().distance(player.getLocation()) > plugin.getConfig().getInt("trade.max_distance",16)){
+            player.sendMessage(getLang("trade.too_far", player));
             return null;
         }
         return target;

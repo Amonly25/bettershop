@@ -27,7 +27,7 @@ public class TradeManager {
         // Create trade
         Trade trade = new Trade(creator, target, item, price);
         trades.add(trade);
-        creator.sendMessage("Trade request sent to " + target.getName() + " with item for $" + price);
+        creator.sendMessage(plugin.getLang().getFrom("trade.request", target).replace("{player}", target.getName()));
         sendMessage(creator, target);
       
     }
@@ -49,24 +49,27 @@ public class TradeManager {
 
         double price = trade.getPrice();
 
+        Player creator = trade.getCreator();
+        Player target = trade.getTarget();
+
         if (plugin.getEconomy() == null) {
-            trade.getCreator().sendMessage("Trade failed, economy plugin not found");
-            trade.getTarget().sendMessage("Trade failed, economy plugin not found");
+            creator.sendMessage("Trade failed, economy plugin not found");
+            target.sendMessage("Trade failed, economy plugin not found");
             giveItem(trade, trade.getCreator());
             return;
         }
 
-        if (plugin.getEconomy().getBalance(trade.getTarget()) < price) {
-            trade.getCreator().sendMessage("Trade failed, " + trade.getTarget().getName() + " does not have enough money");
-            trade.getTarget().sendMessage("Trade failed, you do not have enough money");
-            giveItem(trade, trade.getCreator());
+        if (plugin.getEconomy().getBalance(target) < price) {
+            creator.sendMessage(plugin.getLang().getFrom("trade.failed_no_money", creator));
+            target.sendMessage(plugin.getLang().getFrom("trade.failed_no_money", target));
+            giveItem(trade, creator);
             return;
         }
-        plugin.getEconomy().withdrawPlayer(trade.getTarget(), price);
-        plugin.getEconomy().depositPlayer(trade.getCreator(), price);
-        trade.getCreator().sendMessage("Trade successful, you have received $" + price);
-        trade.getTarget().sendMessage("Trade successful, you have paid $" + price);
-        giveItem(trade, trade.getTarget());
+        plugin.getEconomy().withdrawPlayer(target, price);
+        plugin.getEconomy().depositPlayer(creator, price);
+        creator.sendMessage(plugin.getLang().getFrom("trade.on_receive", creator));
+        target.sendMessage(plugin.getLang().getFrom("trade.on_payment", target));
+        giveItem(trade, target);
         trades.remove(trade);
 
     }
@@ -83,11 +86,11 @@ public class TradeManager {
 
     private void sendMessage(Player sender, Player target){
 
-        String text = "You have received a trade request from " + sender.getName();
+        String text = plugin.getLang().getFrom("trade.request_received", target).replace("{player}", sender.getName());
 
         TextComponent message = new TextComponent(text);
 
-        String click = "Click here to see the item";
+        String click = plugin.getLang().getFrom("trade.click_to_see", target);
 
         TextComponent clickableText = new TextComponent(click);
       

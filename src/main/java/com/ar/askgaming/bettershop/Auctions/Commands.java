@@ -27,6 +27,10 @@ public class Commands implements TabExecutor{
         } else return null;
     }
 
+    private String getLang(String key, Player player) {
+        return plugin.getLang().getFrom(key, player);
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
@@ -52,19 +56,19 @@ public class Commands implements TabExecutor{
                 try {
                     price = Double.parseDouble(args[1]);
                 } catch (NumberFormatException e) {
-                    p.sendMessage("§cPrice must be a number.");
+                    p.sendMessage(getLang("commands.invalid_number", p));
                     return true;
                 }
 
                 ItemStack item = p.getInventory().getItemInMainHand();
 
                 if (item == null || item.getType().isAir()) {
-                    p.sendMessage("§cYou must hold an item in your hand.");
+                    p.sendMessage(getLang("misc.item_in_hand", p));
                     return true;
                 }
 
                 if (price <= 0) {
-                    p.sendMessage("§cPrice must be greater than 0.");
+                    p.sendMessage(getLang("commands.invalid_number", p));
                     return true;
                 }
 
@@ -81,40 +85,40 @@ public class Commands implements TabExecutor{
                 try {
                     bet = Double.parseDouble(args[2]);
                 } catch (NumberFormatException e) {
-                    p.sendMessage("§cId and price must be numbers.");
+                    p.sendMessage(getLang("commands.invalid_number", p));
                     return true;
                 }
                 Auction auction = manager.getAuctionByID(id);
                 if (auction == null) {
-                    p.sendMessage("§cAuction not found.");
+                    p.sendMessage(getLang("auction.not_found", p));
                     return true;
                 }
                 if (bet <= 0) {
-                    p.sendMessage("§cPrice must be greater than 0.");
+                    p.sendMessage(getLang("commands.invalid_number", p));
                     return true;
                 }
                 if (bet < auction.getNewPrice()) {
-                    p.sendMessage("§cPrice must be greater than the current price.");
+                    p.sendMessage(getLang("auction.must_be_higher", p));
                     return true;
                 }
                 if (auction.getOwner().equals(p)) {
-                    p.sendMessage("§cYou can't bet on your own auction.");
+                    p.sendMessage(getLang("misc.not_to_yourself", p));
                     return true;
                 }
                 double playerBet = auction.getBets().getOrDefault(p.getName(), 0.0);
                 if (playerBet >= bet) {
-                    p.sendMessage("§cYou can't bet less than your current bet.");
+                    p.sendMessage(getLang("auction.must_be_higher", p));
                     return true;
                 }
                 double moneyNeeded = bet - playerBet;
                 if (plugin.getEconomy() != null) {
                     if (!plugin.getEconomy().has(p, moneyNeeded)) {
-                        p.sendMessage("§cYou don't have enough money.");
+                        p.sendMessage(getLang("shop.no_money", p));
                         return true;
                     }
                     plugin.getEconomy().withdrawPlayer(p, moneyNeeded);
                     manager.addBet(id, p, bet);
-                    p.sendMessage("§aBet added successfully for " + bet + "!"); 
+                    p.sendMessage(getLang("auction.bet", p).replace("{price}", bet + "")); 
                 }
                 break;
             case "delete":
@@ -125,20 +129,20 @@ public class Commands implements TabExecutor{
 
                 Auction auction2 = manager.getAuctionByID(args[1]);
                 if (auction2 == null) {
-                    p.sendMessage("§cAuction not found.");
+                    p.sendMessage(getLang("auction.not_found", p));
                     return true;
                 }
                 if (!auction2.getOwner().equals(p)) {
-                    p.sendMessage("§cYou can't delete an auction that is not yours.");
+                    p.sendMessage(getLang("misc.no_perm:", p));
                     return true;
                 }
                 if (auction2.getWinner() != null) {
-                    p.sendMessage("§cYou can't delete an auction that has a winner.");
+                    p.sendMessage(getLang("auction.cant_delete", p));
                     return true;
 
                 }
                 manager.deleteAuction(auction2);
-                p.sendMessage("§aAuction deleted successfully.");
+                p.sendMessage(getLang("auction.deleted", p));
 
                 break;
             case "end":
@@ -149,19 +153,15 @@ public class Commands implements TabExecutor{
 
                 Auction auction5 = manager.getAuctionByID(args[1]);
                 if (auction5 == null) {
-                    p.sendMessage("§cAuction not found.");
+                    p.sendMessage(getLang("auction.not_found", p));
                     return true;
                 }
                 if (!auction5.getOwner().equals(p)) {
-                    p.sendMessage("§cYou can't end an auction that is not yours.");
+                    p.sendMessage(getLang("commands.no_perm", p));
                     return true;
                 }
-                if (auction5.getWinner() == null) {
-                    p.sendMessage("§cYou can't end an auction that has no winner.");
-                    return true;
-                }
+
                 manager.endAction(auction5);
-                p.sendMessage("§aAuction ended successfully.");
 
                 break;
             case "claim":
@@ -172,11 +172,11 @@ public class Commands implements TabExecutor{
 
                 Auction auction3 = manager.getAuctionByID(args[1]);
                 if (auction3 == null) {
-                    p.sendMessage("§cAuction not found.");
+                    p.sendMessage(getLang("auction.not_found", p));
                     return true;
                 }
                 if (!auction3.getWinner().equals(p)) {
-                    p.sendMessage("§cYou can't claim an auction that you didn't win.");
+                    p.sendMessage(getLang("commands.no_perm", p));
                     return true;
                 }
                 int slot = p.getInventory().firstEmpty();
@@ -185,7 +185,7 @@ public class Commands implements TabExecutor{
                 } else {
                     p.getWorld().dropItem(p.getLocation(), auction3.getItem());
                 }
-                p.sendMessage("§aItem claimed successfully.");
+                p.sendMessage(getLang("auction.claimed", p));
                 manager.deleteAuction(auction3);
                 
                 break;
