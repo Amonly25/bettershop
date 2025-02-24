@@ -32,7 +32,7 @@ public class GlobalShopManager extends VirtualShopManager {
         saveConfig();
         itemInMainHand.setAmount(0);
         player.sendMessage(plugin.getLang().getFrom("global_shop.item_added", player).replace("{price}", String.valueOf(price)).replace("{item}", item.getType().name()));
-
+        plugin.getShopLogger().log("Player " + player.getName() + " added item " + item.getType().name() + " to global shop");
     }
 
     public void updateConfig() {

@@ -7,16 +7,24 @@ soft-depend: [Vault, RealisticEconomy]
 commands:
   shop:
     description: Open the shop
+    aliases: [tienda]
+  bshop:
+    description: Open the shop
     aliases: [bs, bshop]
+    permission: bettershop.bshop
   globalshop:
     description: Open the global shop
     aliases: [gshop, gbs]
+    permission: bettershop.globalshop
   servershop:
     description: Open the server shop
     aliases: [sshop, sshop]
+    permission: bettershop.servershop
   auction:
     description: Open the auction
     aliases: [auc]
+    permission: bettershop.auction
   trade:
     description: Open the trade
     aliases: [tr]
+    permission: bettershop.trade

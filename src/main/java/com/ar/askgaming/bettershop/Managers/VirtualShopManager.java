@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -26,6 +27,9 @@ public abstract class VirtualShopManager implements Listener {
     protected final BetterShop plugin;
     protected final String name;
     protected HashMap<Integer, Inventory> inventories = new HashMap<>();
+    public HashMap<Integer, Inventory> getInventories() {
+        return inventories;
+    }
     protected List<ItemStack> items = new ArrayList<>();
 
     public VirtualShopManager(BetterShop plugin, String configFileName, String name) {
@@ -34,6 +38,15 @@ public abstract class VirtualShopManager implements Listener {
         this.file = new File(plugin.getDataFolder(), configFileName);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
+    }
+    public void clearInventories() {
+        inventories.forEach((k, v) -> {
+            // Crea una copia de los viewers y cierra sus inventarios
+            List<HumanEntity> viewers = new ArrayList<>(v.getViewers());
+            viewers.forEach(HumanEntity::closeInventory);
+            // Luego limpia el inventario
+            v.clear();
+        });
     }
 
     protected void loadConfig() {

@@ -21,7 +21,7 @@ public class Trade {
         this.item = item;
         this.price = price;
 
-        inventory = creator.getServer().createInventory(null, 9, "Trade > " + target.getName());
+        inventory = creator.getServer().createInventory(null, 9, creator.getName() + " > " + target.getName() + " $" + price);
         inventory.setItem(4, item);
     }
     public Player getCreator() {

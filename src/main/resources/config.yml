@@ -9,6 +9,7 @@ item_shop:
   - "&8Shift + Right click to buy all"
 
 server_shop:
+  last_executed_day: 0 # Last day the server shop adjust the prices # don't change this value
   last_executed_week: 0 # Last week the server shop reset the base prices to calculate the new discount/amplification prices # don't change this value
   lore: # Lore of the server shop item
   - "&7Price: &a${price} &f({percent}&f)"
@@ -19,11 +20,11 @@ server_shop:
 
 auctions:
   bets_name: "&2Bid List"
-  info_lore": # Lore on te preview of the auction item
+  info_lore: # Lore on te preview of the auction item
   - "&7Current Price: &a${price}"
   - "&7Base price: &6{price}"
   - "&7Time left: &6{time}"
-  - "&7Active: &6{active}"
+  - "&7Ended: &6{ended}"
 
 trade:
   max_distance: 16 # Max distance to trade - Only if players are in the same world

@@ -4,9 +4,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -27,6 +27,7 @@ public class Commands implements TabExecutor {
         this.manager = manager;
 
         plugin.getServer().getPluginCommand("bshop").setExecutor(this);
+        plugin.getServer().getPluginCommand("shop").setExecutor(this);
     }
 
     @Override
@@ -44,44 +45,36 @@ public class Commands implements TabExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (args.length == 0) {
-            sender.sendMessage("Usage: /shop <create/set/sell/delete/list/help>");
-            return true;
-        }
+
+
         if (!(sender instanceof Player)) {
             sender.sendMessage("This command can only be run by a player.");
             return true;
         }
         Player p = (Player) sender;
+        if (command.getName().equalsIgnoreCase("shop")) {
+            p.sendMessage(getLang("help", p));
+            return true;
+        }
+    
+        if (args.length == 0) {
+            p.sendMessage(plugin.getLang().getFrom("bshop_help", p));
+            return true;
+        }
 
         Block targetBlock = p.getTargetBlock(transparentMaterials, 5);
-        switch (args[0].toLowerCase()) {
 
-            case "create":
-                handleCreateShop(p, args, targetBlock);
-                break;
-            case "set":
-                handleSetCommand(p, args, targetBlock);
-                break;
-            case "sell":
-                handleSellItemShop(p, args,targetBlock);
-                break;              
-            case "open":
-                handleOpenByCmd(p, args);
-                break;
-            case "delete":
-                handleRemoveShop(p, args);
-                break;
-            case "list":
-                handleList(p, args);
-                break;
-            case "help":
-                help(p,args);
-                break;
-            default:
-                break;
+        switch (args[0].toLowerCase()) {
+            case "create": handleCreateShop(p, args, targetBlock); break;
+            case "set": handleSetCommand(p, args, targetBlock); break;
+            case "sell": handleSellItemShop(p, args, targetBlock); break;
+            case "open": handleOpenByCmd(p, args); break;
+            case "delete": handleRemoveShop(p, args); break;
+            case "list": handleList(p, args); break;
+            case "help": p.sendMessage(getLang("bshop_help", p)); break;
+            default: p.sendMessage("Unknown command. Use /shop help"); break;
         }
-        return false;
+        return true;
     }
     private String getLang(String path,Player p){
         return plugin.getLang().getFrom(path,p);
@@ -158,45 +151,31 @@ public class Commands implements TabExecutor {
         }
     }
     //#region list
-    public void handleList(Player p, String[] args) {
-
+    private void handleList(Player p, String[] args) {
         if (manager.getShops().isEmpty()) {
             p.sendMessage(getLang("shop.not_found", p));
             return;
         }
-        if (args.length == 1) {
-            p.sendMessage("Shops:");
-            for (BlockShop shop : manager.getShops().values()) {
-                if (shop.getOnwer().getUniqueId().equals(p.getUniqueId())) {
-                    p.sendMessage(shop.getName());
-                }
-            }
+
+        String filter = (args.length == 2) ? args[1].toLowerCase() : "own";
+        UUID playerUUID = p.getUniqueId();
+
+        List<BlockShop> shops = manager.getShops().values().stream()
+            .filter(shop -> switch (filter) {
+                case "server" -> shop.isServerShop();
+                default -> shop.getOnwer().getUniqueId().equals(playerUUID);
+            })
+            .toList(); // `toList()` es más eficiente que `collect(Collectors.toList())` en este caso.
+
+        if (shops.isEmpty()) {
+            p.sendMessage(getLang("shop.not_found", p)); // Mensaje consistente con el de arriba.
             return;
-        } 
-        if (args.length == 2) {
-            if (args[1].equalsIgnoreCase("server")) {
-                p.sendMessage("Server Shops:");
-                for (BlockShop shop : manager.getShops().values()) {
-                    if (shop.isServerShop()) {
-                        p.sendMessage(shop.getName());
-                    }
-                }
-                return;
-            } 
-            @SuppressWarnings("deprecation")
-            OfflinePlayer player = plugin.getServer().getOfflinePlayer(args[1]);
-            if (player != null) {
-                p.sendMessage("Shops of " + player.getName());
-                for (BlockShop shop : manager.getShops().values()) {
-                    if (shop.getOnwer().equals(player)) {
-                        p.sendMessage(shop.getName());
-                    }
-                }
-            } else {
-                p.sendMessage("Player not found!");
-            }
         }
+
+        p.sendMessage(getLang(filter.equals("server") ? "shop.server_shops" : "shop.your_shops", p));
+        shops.forEach(shop -> p.sendMessage(shop.getName()));
     }
+
     
     //#region openByCmd
     public void handleOpenByCmd(Player p, String[] args){
@@ -294,8 +273,5 @@ public class Commands implements TabExecutor {
                 p.sendMessage("Usage: /shop set <text/item>");
                 break;
         }
-    }
-    private void help(Player p, String[] args) {
-        p.sendMessage(plugin.getLang().getFrom("help", p));
     }
 }

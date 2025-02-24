@@ -15,7 +15,9 @@ import org.bukkit.inventory.ItemStack;
 
 import com.ar.askgaming.bettershop.BetterShop;
 import com.ar.askgaming.bettershop.BlockShop.BlockShop;
-import com.ar.askgaming.realisticeconomy.Economy.EconomyTransactions;
+import com.ar.askgaming.realisticeconomy.Economy.EconomyService;
+
+import net.milkbowl.vault.economy.EconomyResponse;
 
 public class ItemShopTransactions {
 
@@ -28,7 +30,7 @@ public class ItemShopTransactions {
     }
 
     public enum ShopType {
-        BLOCKSHOP, GLOBAL, SERVER
+        BLOCKSHOP, GLOBAL, SERVER, AUCTION, AUCTION_MENU, TRADE
     }
 
     //#region cancelItem
@@ -100,9 +102,18 @@ public class ItemShopTransactions {
     private boolean processPayment(Player buyer, UUID seller, double price) {
 
         if (plugin.getRealisticEconomy()!= null) {
+            if (buyer == null ) {
+                return plugin.getRealisticEconomy().getServerBank().withdrawFromServerToPlayer(seller, price);
+            }
             return processRealisticPayment(buyer, seller, price);
 
         } else if (plugin.getEconomy() != null) {
+            if (buyer == null) {
+                EconomyResponse response = plugin.getEconomy().depositPlayer(Bukkit.getPlayer(seller), price);
+                if (response.transactionSuccess()) {
+                    return true;
+                }
+            }
             return processVaultPayment(buyer, seller, price);
         } 
         
@@ -110,7 +121,7 @@ public class ItemShopTransactions {
         return false;
     }
     private boolean processRealisticPayment(Player buyer, UUID seller, double price) {
-        EconomyTransactions economy = plugin.getRealisticEconomy().getEconomyService();
+        EconomyService economy = plugin.getRealisticEconomy().getEconomyService();
 
         if (economy.getBalance(buyer.getUniqueId()) < price) {
             buyer.sendMessage(plugin.getLang().getFrom("shop.no_money", buyer));
@@ -149,6 +160,7 @@ public class ItemShopTransactions {
         }
         return true;
     }
+    //#region GlobalpPurchase
     public void processGlobalShopPurchase(InventoryClickEvent e, Player player, ItemStack item) {
         int amount;
     
@@ -165,10 +177,19 @@ public class ItemShopTransactions {
     
         buyItem(player, item, amount);
     }
+    //#region serverShop
     public void processServerShopPurchase(InventoryClickEvent e, Player player, ItemStack item) {
+        
         if (e.getClick() != ClickType.LEFT && e.getClick() != ClickType.SHIFT_LEFT) {
             return;
         }
+        if (e.getSlot() == 45 || e.getSlot() == 53) {
+            return;
+        }
+        if (item == null || item.getType().isAir()) {
+            return;
+        }
+        
         Map<Material, Double> currentPrices = plugin.getServerShopManager().getCurrentPrices();
         Material itemType = item.getType();
         
@@ -208,13 +229,14 @@ public class ItemShopTransactions {
         
         double totalPayment = totalAmount * pricePerItem;
         
-        for (ItemStack toRemove : itemsToRemove) {
-            player.getInventory().removeItem(toRemove);
-        }
-        plugin.getServerShopManager().updateStats(item, totalAmount);
-        player.sendMessage("Vendiste " + totalAmount + " de " + itemType + " por " + totalPayment + " monedas.");
-        
-        // Aquí puedes agregar la lógica para dar el dinero al jugador
+        if (processPayment(null, player.getUniqueId(), totalPayment)){
+            for (ItemStack toRemove : itemsToRemove) {
+                player.getInventory().removeItem(toRemove);
+            }
+            plugin.getServerShopManager().updateStats(item, totalAmount);
+            player.sendMessage("Vendiste " + totalAmount + " de " + itemType + " por " + totalPayment + " monedas.");
+            plugin.getShopLogger().log("Player " + player.getName() + " sold " + totalAmount + " of " + itemType + " for " + totalPayment);
+        }  
     }
-    
+  
 }

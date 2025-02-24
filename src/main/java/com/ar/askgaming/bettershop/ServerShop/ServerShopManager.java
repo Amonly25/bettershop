@@ -1,5 +1,7 @@
 package com.ar.askgaming.bettershop.ServerShop;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -139,14 +141,16 @@ public class ServerShopManager extends VirtualShopManager{
     private final double PRICE_DROP_PERCENTAGE = 0.10; // Baja un 10%
     private final double PRICE_RISE_PERCENTAGE = 0.05; // Sube un 5%
 
-    private void adjustPrice(Material material, double percentage) {
-        double current = currentPrices.get(material);
 
-        double newPrice = Math.round(current * (1+percentage) * 100.0) / 100.0;
-    
+    private void adjustPrice(Material material, double percentage) {
+        BigDecimal currentBD = BigDecimal.valueOf(currentPrices.get(material));
+        BigDecimal factor = BigDecimal.valueOf(1 + percentage);
+        
+        BigDecimal newPriceBD = currentBD.multiply(factor).setScale(4, RoundingMode.HALF_UP);
+        double newPrice = newPriceBD.doubleValue(); // Convertimos a double solo al final
+
         currentPrices.put(material, newPrice);
         config.set(material.name() + ".currentPrice", newPrice);
-        
     }
     
 

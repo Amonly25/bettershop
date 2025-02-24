@@ -23,6 +23,7 @@ public class TradeManager {
         new Commands(main, this);
     }
 
+    //#region createTrade
     public void createTrade(Player creator, Player target, ItemStack item, double price) {
         // Create trade
         Trade trade = new Trade(creator, target, item, price);
@@ -44,7 +45,7 @@ public class TradeManager {
         }
         return false;
     }
-
+    //#region acceptTrade
     public void acceptTrade(Trade trade) {
 
         double price = trade.getPrice();
@@ -56,23 +57,27 @@ public class TradeManager {
             creator.sendMessage("Trade failed, economy plugin not found");
             target.sendMessage("Trade failed, economy plugin not found");
             giveItem(trade, trade.getCreator());
+
             return;
         }
 
         if (plugin.getEconomy().getBalance(target) < price) {
             creator.sendMessage(plugin.getLang().getFrom("trade.failed_no_money", creator));
             target.sendMessage(plugin.getLang().getFrom("trade.failed_no_money", target));
+            plugin.getShopLogger().log("Trade failed, " + target.getName() + " has no money");
             giveItem(trade, creator);
             return;
         }
         plugin.getEconomy().withdrawPlayer(target, price);
         plugin.getEconomy().depositPlayer(creator, price);
-        creator.sendMessage(plugin.getLang().getFrom("trade.on_receive", creator));
-        target.sendMessage(plugin.getLang().getFrom("trade.on_payment", target));
+        creator.sendMessage(plugin.getLang().getFrom("trade.on_receive", creator).replace("{price}", price + ""));
+        target.sendMessage(plugin.getLang().getFrom("trade.on_payment", target).replace("{price}", price + ""));
+        plugin.getShopLogger().log("Trade accepted, " + target.getName() + " paid " + price + " to " + creator.getName());
         giveItem(trade, target);
         trades.remove(trade);
 
     }
+    //#region giveItem
     public void giveItem(Trade trade, Player player) {
 
         int slot = player.getInventory().firstEmpty();

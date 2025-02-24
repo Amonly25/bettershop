@@ -34,6 +34,9 @@ public class Commands implements TabExecutor {
         }
 
         switch (args[0].toLowerCase()) {
+            case "help":
+                player.sendMessage(plugin.getLang().getFrom("globalshop_help", player));
+            break;
             case "open":
                 globalShopManager.openInventory(player,0);
                 return true;
@@ -52,6 +55,9 @@ public class Commands implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (args.length == 1) {
+            return List.of("help", "open", "sell");
+        }
         return null;
     }
 
@@ -74,22 +80,23 @@ public class Commands implements TabExecutor {
             return;
         }
         int amountItemsPublished = globalShopManager.getAmountItemsPublished(player);
-        boolean hasPermission = false;
-        
-        // Recorremos desde amountItemsPublished + 1 hasta 1 buscando el permiso más alto que el jugador tenga
-        for (int i = amountItemsPublished + 1; i >= 1; i--) {
-            String permission = "bettershop.globalshop." + i;
-            if (player.hasPermission(permission)) {
-                hasPermission = true;
-                break;
-            }
-        }
-        
-        if (!hasPermission) {
-            player.sendMessage(plugin.getLang().getFrom("global_shop.max_items", player));
+        if (player.hasPermission("bettershop.globalshop.unlimited")) {
+            globalShopManager.sellItem(player, item, price);
             return;
         }
-
+        // Recorremos desde amountItemsPublished + 1 hasta 1 buscando el permiso más alto que el jugador tenga
+        for (int i = 0; i < 100; i++) {
+            String permission = "bettershop.globalshop." + i;
+            if (player.hasPermission(permission)) {
+                if (amountItemsPublished < i) {
+                    break;
+                } else {
+                    player.sendMessage(plugin.getLang().getFrom("global_shop.max_items", player));
+                    return;
+                }
+            }
+        }
+        plugin.getShopLogger().log("Player " + player.getName() + " published on global shop " + item.getType().name() + " for " + price);
         globalShopManager.sellItem(player, item, price);
 
     }

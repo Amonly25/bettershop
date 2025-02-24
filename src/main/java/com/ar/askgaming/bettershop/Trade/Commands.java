@@ -13,8 +13,8 @@ import com.ar.askgaming.bettershop.BetterShop;
 
 public class Commands implements TabExecutor{
 
-    private TradeManager tradeManager;
-    private BetterShop plugin;
+    private final TradeManager tradeManager;
+    private final BetterShop plugin;
     public Commands(BetterShop plugin, TradeManager tradeManager) {
         plugin.getServer().getPluginCommand("trade").setExecutor(this);
         this.tradeManager = tradeManager;
@@ -33,6 +33,7 @@ public class Commands implements TabExecutor{
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
+            sender.sendMessage("Only players can use this command.");
             return false;
         }
         Player player = (Player) sender;
@@ -41,19 +42,15 @@ public class Commands implements TabExecutor{
             return true;
         }
         switch (args[0].toLowerCase()) {
-            case "accept":
-                acceptTrade(player, args);
-                break;
-            case "see":
-                seeTrade(player, args);
-                break;
-            default:
-                processTrade(player, args);
-                break;
+            case "help" -> player.sendMessage(getLang("trade_help", player));
+            case "accept" -> acceptTrade(player, args);
+            case "see" -> seeTrade(player, args);
+            default -> processTrade(player, args);
         }
 
         return true;
     }
+    //#region processTrade
     private void processTrade(Player player, String[] args) {
 
         if (args.length < 2) {
@@ -80,6 +77,7 @@ public class Commands implements TabExecutor{
         tradeManager.createTrade(player, target, item.clone(), price);
         item.setAmount(0);
     }
+    //#region acceptTrade
     private void acceptTrade(Player player, String[] args) {
 
         if (args.length < 2) {
@@ -100,6 +98,7 @@ public class Commands implements TabExecutor{
         }
         player.sendMessage(getLang("trade.not_found", player));
     }
+    //#region seeTrade
     private void seeTrade(Player player, String[] args) {
 
         if (args.length < 2) {
@@ -114,17 +113,19 @@ public class Commands implements TabExecutor{
         for (Trade trade : tradeManager.getTrades()) {
             if (trade.getTarget() == player && trade.getCreator() == target) {
                 player.openInventory(trade.getInventory());
+                return;
             }
         }
         player.sendMessage(getLang("trade.not_found", player));
     }
+    //#region canTrade
     private Player canTrade(Player player, String targetName) {
         Player target = Bukkit.getPlayer(targetName);
         if (target == null) {
             player.sendMessage(getLang("trade.not_found", player));
             return null;
         }
-        if (target == player) {
+        if (target.equals(player)) {
             player.sendMessage(getLang("misc.not_to_yourself", player));
             return null;
         }

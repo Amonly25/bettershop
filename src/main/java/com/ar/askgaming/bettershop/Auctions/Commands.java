@@ -23,7 +23,7 @@ public class Commands implements TabExecutor{
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return List.of("create", "bet", "delete", "claim", "open", "list");
+            return List.of("create", "bid", "cancel", "claim", "open", "list");
         } else return null;
     }
 
@@ -39,171 +39,152 @@ public class Commands implements TabExecutor{
             sender.sendMessage("Only players can use this command.");
             return true;
         }
-        Player p = (Player) sender;
+        Player player = (Player) sender;
 
         if (args.length == 0) {
-            manager.openInventory(p, 0);
+            manager.openInventory(player, 0);
             return true;
         }
         switch (args[0].toLowerCase()) {
-            case "create":
-                if (args.length < 2) {
-                    p.sendMessage("Usage: /auction create <price> ");
-                    return true;
-                }
-                double price;
-
-                try {
-                    price = Double.parseDouble(args[1]);
-                } catch (NumberFormatException e) {
-                    p.sendMessage(getLang("commands.invalid_number", p));
-                    return true;
-                }
-
-                ItemStack item = p.getInventory().getItemInMainHand();
-
-                if (item == null || item.getType().isAir()) {
-                    p.sendMessage(getLang("misc.item_in_hand", p));
-                    return true;
-                }
-
-                if (price <= 0) {
-                    p.sendMessage(getLang("commands.invalid_number", p));
-                    return true;
-                }
-
-                manager.createAuction(p, price, item);
-
-                break;
-            case "bet":
-                if (args.length < 3) {
-                    p.sendMessage("Usage: /auction bet <id> <price>");
-                    return true;
-                }
-                String id = args[1];
-                double bet;
-                try {
-                    bet = Double.parseDouble(args[2]);
-                } catch (NumberFormatException e) {
-                    p.sendMessage(getLang("commands.invalid_number", p));
-                    return true;
-                }
-                Auction auction = manager.getAuctionByID(id);
-                if (auction == null) {
-                    p.sendMessage(getLang("auction.not_found", p));
-                    return true;
-                }
-                if (bet <= 0) {
-                    p.sendMessage(getLang("commands.invalid_number", p));
-                    return true;
-                }
-                if (bet < auction.getNewPrice()) {
-                    p.sendMessage(getLang("auction.must_be_higher", p));
-                    return true;
-                }
-                if (auction.getOwner().equals(p)) {
-                    p.sendMessage(getLang("misc.not_to_yourself", p));
-                    return true;
-                }
-                double playerBet = auction.getBets().getOrDefault(p.getName(), 0.0);
-                if (playerBet >= bet) {
-                    p.sendMessage(getLang("auction.must_be_higher", p));
-                    return true;
-                }
-                double moneyNeeded = bet - playerBet;
-                if (plugin.getEconomy() != null) {
-                    if (!plugin.getEconomy().has(p, moneyNeeded)) {
-                        p.sendMessage(getLang("shop.no_money", p));
-                        return true;
-                    }
-                    plugin.getEconomy().withdrawPlayer(p, moneyNeeded);
-                    manager.addBet(id, p, bet);
-                    p.sendMessage(getLang("auction.bet", p).replace("{price}", bet + "")); 
-                }
-                break;
-            case "delete":
-                if (args.length < 2) {
-                    p.sendMessage("Usage: /auction delete <id>");
-                    return true;
-                }
-
-                Auction auction2 = manager.getAuctionByID(args[1]);
-                if (auction2 == null) {
-                    p.sendMessage(getLang("auction.not_found", p));
-                    return true;
-                }
-                if (!auction2.getOwner().equals(p)) {
-                    p.sendMessage(getLang("misc.no_perm:", p));
-                    return true;
-                }
-                if (auction2.getWinner() != null) {
-                    p.sendMessage(getLang("auction.cant_delete", p));
-                    return true;
-
-                }
-                manager.deleteAuction(auction2);
-                p.sendMessage(getLang("auction.deleted", p));
-
-                break;
-            case "end":
-                if (args.length < 2) {
-                    p.sendMessage("Usage: /auction end <id>");
-                    return true;
-                }
-
-                Auction auction5 = manager.getAuctionByID(args[1]);
-                if (auction5 == null) {
-                    p.sendMessage(getLang("auction.not_found", p));
-                    return true;
-                }
-                if (!auction5.getOwner().equals(p)) {
-                    p.sendMessage(getLang("commands.no_perm", p));
-                    return true;
-                }
-
-                manager.endAction(auction5);
-
-                break;
-            case "claim":
-                if (args.length < 2) {
-                    p.sendMessage("Usage: /auction claim <id>");
-                    return true;
-                }
-
-                Auction auction3 = manager.getAuctionByID(args[1]);
-                if (auction3 == null) {
-                    p.sendMessage(getLang("auction.not_found", p));
-                    return true;
-                }
-                if (!auction3.getWinner().equals(p)) {
-                    p.sendMessage(getLang("commands.no_perm", p));
-                    return true;
-                }
-                int slot = p.getInventory().firstEmpty();
-                if (slot != -1) {
-                    p.getInventory().setItem(slot, auction3.getItem());
-                } else {
-                    p.getWorld().dropItem(p.getLocation(), auction3.getItem());
-                }
-                p.sendMessage(getLang("auction.claimed", p));
-                manager.deleteAuction(auction3);
-                
-                break;
-            case "open":
-                manager.openInventory(p, 0);
-                break;
-            case "list":
-                manager.getAuctions().forEach((id4, auction4) -> {
-                    p.sendMessage("§aId: " + id4 + " | Owner: " + auction4.getOwner().getName() + " | Price: " + auction4.getNewPrice());
-                });
-                break;
-
-            default:
-                p.sendMessage("Usage: /auction <create/bet/delete/end>");
-                break;
+            case "help" -> player.sendMessage(getLang("auction_help", player));
+            case "create" -> handleCreate(player, args);
+            case "bid" -> handleBet(player, args);
+            case "cancel" -> handleCancel(player, args);
+            case "end" -> handleEnd(player, args);
+            case "claim" -> handleClaim(player, args);
+            case "open" -> manager.openInventory(player, 0);
+            case "list" -> listAuctions(player);
+            default -> player.sendMessage("Usage: /auction <create/bet/cancel/end/claim/open/list>");
         }
-
         return true;
     }
 
+    private void handleCreate(Player player, String[] args) {
+        if (args.length < 2) {
+            player.sendMessage("Usage: /auction create <price>");
+            return;
+        }
+        double price = parseDouble(args[1], player);
+        if (price <= 0) return;
+        
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (item.getType().isAir()) {
+            player.sendMessage(getLang("misc.item_in_hand", player));
+            return;
+        }
+        int amountItemsPublished = manager.getPlayerAuctions(player).size();
+        // Recorremos desde amountItemsPublished + 1 hasta 1 buscando el permiso más alto que el jugador tenga
+        if (player.hasPermission("bettershop.auctions.unlimited")) {
+            manager.createAuction(player, price, item);
+            return;
+        }
+        for (int i = 0; i < 100; i++) {
+            String permission = "bettershop.auctions." + i;
+            if (player.hasPermission(permission)) {
+                if (amountItemsPublished < i) {
+                    break;
+                } else {
+                    player.sendMessage(plugin.getLang().getFrom("auction.max", player));
+                    return;
+                }
+            }
+        }
+        plugin.getShopLogger().log("Player " + player.getName() + " created an auction for " + item.getType().name() + " for " + price);
+        manager.createAuction(player, price, item);
+    }
+
+    private void handleBet(Player player, String[] args) {
+        if (args.length < 3) {
+            player.sendMessage("Usage: /auction bet <id> <price>");
+            return;
+        }
+        
+        Auction auction = manager.getAuctionByID(args[1]);
+        if (auction == null || auction.getOwner().equals(player)) {
+            player.sendMessage(getLang("auction.not_found", player));
+            return;
+        }
+        if (auction.isHasEnded()) {
+            player.sendMessage(getLang("auction.ended", player));
+            return;
+        }
+        
+        double bet = parseDouble(args[2], player);
+        if (bet <= auction.getNewPrice() || bet <= auction.getBets().getOrDefault(player.getName(), 0.0)) {
+            player.sendMessage(getLang("auction.must_be_higher", player));
+            return;
+        }
+        
+        double moneyNeeded = bet - auction.getBets().getOrDefault(player.getName(), 0.0);
+        if (plugin.getEconomy() != null && plugin.getEconomy().has(player, moneyNeeded)) {
+            plugin.getEconomy().withdrawPlayer(player, moneyNeeded);
+            manager.addBet(args[1], player, bet);
+            player.sendMessage(getLang("auction.bid", player).replace("{price}", String.valueOf(bet)));
+        } else {
+            player.sendMessage(getLang("shop.no_money", player));
+        }
+    }
+
+    private void handleCancel(Player player, String[] args) {
+        Auction auction = validateAuction(player, args, "cancel");
+        if (auction == null) return;
+        
+        if (auction.isHasEnded()) {
+            player.sendMessage(getLang("auction.cant_cancel", player));
+            return;
+        }
+        
+        manager.cancelAuction(auction);
+        player.sendMessage(getLang("auction.cancelled", player));
+    }
+
+    private void handleEnd(Player player, String[] args) {
+        Auction auction = validateAuction(player, args, "end");
+        if (auction == null) return;
+        
+        manager.endAuction(auction);
+    }
+
+    private void handleClaim(Player player, String[] args) {
+        Auction auction = manager.getAuctionByID(args[1]);
+        if (auction == null) {
+            player.sendMessage(getLang("auction.not_found", player));
+            return;
+        }
+        plugin.getAuctionManager().processAuctionInventoryClick(auction.getInventory(), player);
+    }
+
+    private void listAuctions(Player player) {
+        manager.getAuctions().forEach((id, auction) -> 
+            player.sendMessage("§aId: " + id + " | Owner: " + auction.getOwner().getName() + " | Price: " + auction.getNewPrice())
+        );
+    }
+
+    private Auction validateAuction(Player player, String[] args, String action) {
+        if (args.length < 2) {
+            player.sendMessage("Usage: /auction " + action + " <id>");
+            return null;
+        }
+        
+        Auction auction = manager.getAuctionByID(args[1]);
+        if (auction == null) {
+            player.sendMessage(getLang("auction.not_found", player));
+            return null;
+        }
+        
+        if (!auction.getOwner().equals(player)) {
+            player.sendMessage(getLang("misc.no_perm", player));
+            return null;
+        }
+        return auction;
+    }
+
+    private double parseDouble(String input, Player player) {
+        try {
+            return Double.parseDouble(input);
+        } catch (NumberFormatException e) {
+            player.sendMessage(getLang("commands.invalid_number", player));
+            return -1;
+        }
+    }
 }

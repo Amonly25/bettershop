@@ -38,8 +38,6 @@ public class Auction implements ConfigurationSerializable {
         return bets;
     }
 
-    private Inventory inventory;
-
     public Auction(String id, Player owner, double price, ItemStack item) {
         this.id = id;
         this.owner = owner;
@@ -48,6 +46,7 @@ public class Auction implements ConfigurationSerializable {
         this.createdTime = System.currentTimeMillis();
         this.item = item;
         this.newPrice = price;
+        hasEnded = false;
 
         createInventoryAndItem();
     }
@@ -68,9 +67,9 @@ public class Auction implements ConfigurationSerializable {
 
         this.bets = (HashMap<String, Double>) map.get("bets");
 
-        createInventoryAndItem();
+        hasEnded = (boolean) map.get("ended");
     }
-    private void createInventoryAndItem() {
+    public void createInventoryAndItem() {
         inv = Bukkit.createInventory(null, 9, "Auction id: " + id + " - " + owner.getName());
         inv.setItem(3, item);
         updateOrCreateItems();
@@ -88,6 +87,7 @@ public class Auction implements ConfigurationSerializable {
             s = s.replace("{price}", String.valueOf(basePrice));
             s = s.replace("{time}", getTimeLeftFormatted());
             s = s.replace("{ended}", String.valueOf(hasEnded));
+            s = s.replace("&", "§");
             newLore.add(s);
         }
         meta.setLore(newLore);
@@ -108,6 +108,11 @@ public class Auction implements ConfigurationSerializable {
     }
     private String getTimeLeftFormatted(){
         long time = timeLeft;
+
+        if (time < 0) {
+            return "0h 0m";
+        }
+
         long hours = time / 3600000;
         time = time - hours * 3600000;
         long minutes = time / 60000;
@@ -125,7 +130,7 @@ public class Auction implements ConfigurationSerializable {
         ItemStack item = new ItemStack(Material.PAPER);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName("Winner");
-        List<String> lore = meta.getLore();
+        List<String> lore = new ArrayList<>();
         lore.add("Winner: " + winner.getName());
         lore.add("Price: " + newPrice);
         meta.setLore(lore);
@@ -156,7 +161,7 @@ public class Auction implements ConfigurationSerializable {
         this.id = id;
     }
     public Inventory getInventory() {
-        return inventory;
+        return inv;
     }
 
     public ItemStack getItem() {
@@ -196,6 +201,9 @@ public class Auction implements ConfigurationSerializable {
         map.put("time_left", timeLeft);
         map.put("newPrice", newPrice);
         map.put("bets", bets);
+        map.put("id", id);
+        map.put("ended", hasEnded);
+        
         return map;
         
     }

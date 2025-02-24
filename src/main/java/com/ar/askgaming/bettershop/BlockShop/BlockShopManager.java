@@ -12,6 +12,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import com.ar.askgaming.bettershop.BetterShop;
@@ -129,7 +130,14 @@ public class BlockShopManager {
         }
         return null;
     }
-
+    public BlockShop getByInventory(Inventory inventory) {
+        for (BlockShop shop : getShops().values()) {
+            if(shop.getInventory().equals(inventory)){
+                return shop;
+            }
+        }
+        return null;
+    }
     public BlockShop getByName(String string) {
         for (BlockShop shop : getShops().values()) {
             if(shop.getName().equals(string)){

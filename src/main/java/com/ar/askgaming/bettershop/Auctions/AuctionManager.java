@@ -61,6 +61,7 @@ public class AuctionManager extends VirtualShopManager{
         } catch (Exception e) {
             e.printStackTrace();
             player.sendMessage("Error creating auction.");
+            plugin.getShopLogger().log("Error creating auction.");
         }
         
     }
@@ -84,18 +85,20 @@ public class AuctionManager extends VirtualShopManager{
         }
     }
     //#region delete
-    public void deleteAuction(Auction auction) {
+    public void deleteAuction(Auction auction, Player claimer) {
         String id = auction.getId();
-        if (auction.getWinner() == null) {
-            processLosers(auction);
-            Player player = (Player) auction.getOwner();
-            int slot = player.getInventory().firstEmpty();
-            if (slot != -1) {
-                player.getInventory().setItem(slot, auction.getItem());
-            } else {
-                player.getWorld().dropItem(player.getLocation(), auction.getItem());
-            }
+        int slot = claimer.getInventory().firstEmpty();
+        if (slot != -1) {
+            claimer.getInventory().setItem(slot, auction.getItem());
+        } else {
+            claimer.getWorld().dropItem(claimer.getLocation(), auction.getItem());
         }
+        plugin.getShopLogger().log("Player " + claimer.getName() + " claimed item " + auction.getItem().getType().name() + " from auction " + id);
+        auction.getInventory().clear();
+        List<Player> viewers = new ArrayList<>();
+        auction.getInventory().getViewers().forEach(p -> viewers.add((Player) p));
+        viewers.forEach(p -> p.closeInventory());
+
         auctions.remove(id);
         updateInventory();
         config.set(id.toString(), null);
@@ -120,6 +123,7 @@ public class AuctionManager extends VirtualShopManager{
                 
                 auctions.put(key, auction);
                 auction.setId(key);
+                auction.createInventoryAndItem();
             }
                 
         }
@@ -151,6 +155,9 @@ public class AuctionManager extends VirtualShopManager{
     public void addBet(String id, Player player, double price) {
         Auction auction = auctions.get(id);
         auction.getBets().put(player.getName(), price);
+        if (auction.getNewPrice() < price) {
+            auction.setNewPrice(price);
+        }
         config.set(id+"", auction);
         saveConfig();
     }
@@ -188,8 +195,8 @@ public class AuctionManager extends VirtualShopManager{
     //#region end auction
     private void processLosers(Auction auction) {
         for (String name : auction.getBets().keySet()) {
-            Player winner = (Player) auction.getWinner();
-            if (winner != null && name.equals(winner.getName())) {
+
+            if (name.equals(auction.getWinner().getName())) {
                 continue;
             }
 
@@ -205,7 +212,7 @@ public class AuctionManager extends VirtualShopManager{
     }
 
     //#region end
-    public void endAction(Auction auction) {
+    public void endAuction(Auction auction) {
         
         auction.setHasEnded(true);
         OfflinePlayer winne = getHighestBet(auction.getId());
@@ -213,6 +220,13 @@ public class AuctionManager extends VirtualShopManager{
             auction.setWinner(winne);
             processWinner(winne, auction);
             processLosers(auction);
+            plugin.getLogger().info("Auction " + auction.getId() + " ended with winner " + winne.getName());
+        }else{
+            Player player = auction.getOwner().getPlayer();
+            if (player != null) {
+                player.sendMessage(getLang("auction.end_no_winner", player));
+                plugin.getLogger().info("Auction " + auction.getId() + " ended with no winner");
+            }
         }
         
         config.set(auction.getId()+"", auction);
@@ -230,6 +244,41 @@ public class AuctionManager extends VirtualShopManager{
             }
         }
         return player;
+    }
+    public void processAuctionInventoryClick(Inventory inv, Player player) {
+        Auction auction = getAuctionByInventory(inv);
+        if (auction == null) {
+            return;
+        }
+        if (!auction.isHasEnded()) {
+            player.sendMessage(getLang("auction.not_ended", player));
+            return;
+        }
+        if (auction.getWinner() == null && auction.getOwner().equals(player)) {
+            deleteAuction(auction, player);
+            return;
+        } else if (auction.getWinner() != null && auction.getWinner().equals(player)) {
+            deleteAuction(auction, player);
+        }
+    }
+    //#region cancel
+    public void cancelAuction(Auction auction2) {
+        processLosers(auction2);
+        auction2.setHasEnded(true);
+        config.set(auction2.getId()+"", auction2);
+        saveConfig();
+        Player player = (Player) auction2.getOwner();
+        player.sendMessage(plugin.getLang().getFrom("auction.claim", player));
+        plugin.getShopLogger().log("Auction " + auction2.getId() + " was cancelled by " + player.getName());
+    }
+    public List<String> getPlayerAuctions(Player player) {
+        List<String> auctions = new ArrayList<>();
+        for (Auction auction : this.auctions.values()) {
+            if (auction.getOwner().equals(player)) {
+                auctions.add(auction.getId());
+            }
+        }
+        return auctions;
     }
     
 }

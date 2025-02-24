@@ -1,6 +1,6 @@
 shop:
-  buy: "&aYou bought {amount} items for {price}!"
-  sell: "&aNew Sold for {price} to {player}!"
+  buy: "&aYou have purchased {amount} items for {price}!"
+  sell: "&aYou sold for {price} to {player}!"
   item_cancelled: "&cItem purchase cancelled!"
   no_money: "&cYou don't have enough money!"
   exits: "&cThis shop already exists!"
@@ -8,30 +8,90 @@ shop:
   add_item: "&aYou added {amount} items for {price}!"
   not_found: "&cShop not found!"
   deleted: "&aShop deleted!"
-  set_text: "&aYou set the text of the shop!"
-  set_server_shop: "&aYou set the shop as server shop!"
+  set_text: "&aShop text set!"
+  set_server_shop: "&aShop set as server shop!"
   double_chest: "&cYou must use a single chest!"
+
 misc:
-  item_in_hand: "&cYou must have an item in your hand!"
+  item_in_hand: "&cYou must have an item in hand!"
   no_space: "&cYour inventory is full!"
-  no_shop_space: "&cShop inventory is full!"
-  cant_use_double_chest: "&cYou can't use a double chest, press shift to place other."
-  error_buying: "&cError buying item!"
+  no_shop_space: "&cThe shop inventory is full!"
+  cant_use_double_chest: "&cYou cannot use a double chest, press shift to place another!"
+  error_buying: "&cError buying the item!"
   chars_limit: "&cYou have reached the maximum number of characters: {max}"
+  not_to_yourself: "&cYou cannot sell to yourself!"
 
 commands:
-  no_perm: "&cYou don't have permission to do that!"
+  no_perm: "&cYou do not have permission to do that!"
   invalid_number: "&cInvalid number!"
 
-server_shop:
-  daily_price_adjustment: "&aNew daily price adjustment has been set to the server shop!"
+trade:
+  not_found: "&cPlayer not found!"
+  too_far: "&cThe player is too far away!"
+  click_to_see: "&aClick to see."
+  request: "&aYou have sent a trade request to {player}!"
+  request_received: "&7You have received a trade request from &6{player}, "
+  failed_no_money: "&cThe trade failed, the buyer does not have enough money!"
+  on_payment: "&aTrade completed, you paid {price}!"
+  on_receive: "&aTrade completed, you received {price}!"
+  cancelled: "&cTrade cancelled!"
 
+auction:
+  not_found: "&cAuction not found!"
+  must_be_higher: "&cYou must bid higher than the current price!"
+  bid: "&aYou bid {price}!"
+  cant_cancel: "&cYou cannot cancel an auction without claiming it!"
+  cancelled: "&aAuction cancelled!"
+  claim: "&aYou have claimed the auction!"
+  end: "&7Auction finished, &6{player} &7won with &a${price}!"
+  end_no_winner: "&7Auction finished, no one won, claim your item!"
+  lost: "&cYou lost the auction, money refunded!"
+  won: "&a{player} &7won {seller}'s auction with &a${price}!"
+  created: "&a{player} &7created an auction for &a${price}!"
+  not_ended: "&cThe auction has not ended, you cannot claim it!"
+  ended: "&cThe auction has ended, you cannot bid!"
+  max: "&cYou have reached the maximum number of auctions!"
+
+global_shop:
+  item_added: "&aYou have added {item} for {price} to the global shop!"
+  max_items: "&cYou have reached the maximum number of items in the global shop!"
+
+server_shop:
+  daily_price_adjustment: "&aA new daily price adjustment has been set for the server shop!"
 
 help:
-  - "&e/shop create <name> &7- Create a shop, you must look at a chest or a barrel."
-  - "&e/shop delete &7- Delete a shop."
-  - "&e/shop set text <text> &7- Set the text of the shop."
-  - "&e/shop set item &7- Set the icon displayed in the shop."
-  - "&e/shop list &7- List your shops."
-  - "&e/shop sell <amount> &7- Add items to the shop, the item must be in your hand and you must look at the shop. The price is for each item."
+  - "&7View online store: &aaskgaming.com.ar/store/"
+  - "&e/bshop help &7- Info for creating a physical shop."
+  - "&e/globalshop help &7- Info for adding an item to the global shop."
+  - "&e/auction help &7- Info for creating an auction."
+  - "&e/trade help &7- Info for trading with another player."
+  - "&e/servershop help &7- Info about the server shop."
 
+bshop_help:
+  - "&e/bshop create <name> &7- Create a shop, you must look at a chest or barrel."
+  - "&e/bshop delete &7- Delete a shop."
+  - "&e/bshop set <text/item> &7- Set the shop text."
+  - "&e/bshop sell <price> &7- Add an item to the shop."
+  - "&e/bshop list &7- Show your shops."
+
+server_shop_help:
+  - "&e1. Item prices are dynamic and adjust daily."
+  - "&e2. Adjusted based on the quantity sold."
+  - "&e3. Base prices are reset every week."
+
+global_shop_help:
+  - "&e/globalshop add <price> &7- Add an item to the global shop."
+
+auction_help:
+  - "&e/auction create <price> &7- Create an auction."
+  - "&e/auction bid <id> <price> &7- Bid in an auction."
+  - "&e/auction claim <id> &7- Claim an auction."
+  - "&e/auction cancel <id> &7- Cancel an auction."
+  - "&e/auction end &7- End an auction."
+  - "&e/auction list &7- Show the auctions."
+  - "&e/auction open <id> &7- Show auction details."
+
+trade_help:
+  - "&e/trade <player> &7- Start a trade with another player."
+  - "&e/trade accept <player> &7- Accept a trade."
+  - "&e/trade see <player> &7- View the trade offer."

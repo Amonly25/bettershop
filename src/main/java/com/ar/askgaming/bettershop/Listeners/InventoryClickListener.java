@@ -1,8 +1,8 @@
 package com.ar.askgaming.bettershop.Listeners;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.UUID;
 
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,96 +18,65 @@ import com.ar.askgaming.bettershop.Managers.ItemShopTransactions.ShopType;
 
 public class InventoryClickListener implements Listener{
 
-    private BetterShop plugin;
+    private final BetterShop plugin;
     public InventoryClickListener(BetterShop main) {
         plugin = main;
     }
+
+    private final HashMap<Player, Long> lastClick = new HashMap<>();
+
     @EventHandler()
     public void onClickInventory(InventoryClickEvent e) {
     
-        if (e.getClickedInventory() == null) {
-            return;
-        }
-        if (e.getCurrentItem() == null || e.getCurrentItem().getType() == Material.AIR) {
-            return;
-        }
+        Inventory topInventory = e.getClickedInventory();
+        Inventory bottomInventory = e.getInventory();
 
-        Inventory clickedInventory = e.getClickedInventory();
-        Inventory eventInventory = e.getInventory();
+        ItemStack item = e.getCurrentItem();
 
         if (!(e.getWhoClicked() instanceof Player)) {
             return;
         }
-    
-        ItemStack item = e.getCurrentItem();
         Player player = (Player) e.getWhoClicked();
+        ShopType shopType = getShopType(e, topInventory, bottomInventory, player);
+        if (shopType == null) return;
 
-        ShopType shopType = null;
-        BlockShop shop = null;
-
-        if (plugin.getGlobalShopManager().isGlobalShopInventory(eventInventory) 
-            || plugin.getGlobalShopManager().isGlobalShopInventory(clickedInventory)) {
-                shopType = ShopType.GLOBAL;
-
-        } else if (plugin.getAuctionManager().isAuctionInventory(eventInventory) || 
-            plugin.getAuctionManager().isAuctionInventory(clickedInventory)) {
-                e.setCancelled(true);
-                return;
-        
-        }
-        else if (plugin.getTradeManager().isTradeInvensory(eventInventory) || 
-            plugin.getTradeManager().isTradeInvensory(clickedInventory)) {
-                e.setCancelled(true);
-                return;
-        
-        }  else if (plugin.getAuctionManager().isShopInventory(eventInventory) || 
-            plugin.getAuctionManager().isShopInventory(clickedInventory)) {
-                e.setCancelled(true);
-                ItemMeta meta = item.getItemMeta();
-                if (!meta.hasLore()) {
+        switch (shopType) {
+            case BLOCKSHOP:
+                handleShopClick(e, player, item, ShopType.BLOCKSHOP, topInventory);
+                break;
+            case GLOBAL:
+                handleShopClick(e, player, item, ShopType.GLOBAL, topInventory);    
+                break;
+            case SERVER:
+                if (!plugin.getServerShopManager().isShopInventory(topInventory)) {
                     return;
                 }
-                List<String> lore = item.getItemMeta().getLore();
-                for (String s : lore) {
-                    String[] split = s.split(" ");
-                    if (split.length < 2) {
-                        continue; // Evita errores si la línea no tiene suficientes palabras
-                    }
-                    
-                    if (split[0].contains("id:")) {
-                        Auction auction = plugin.getAuctionManager().getAuctionByID(split[1]);
-                        if (auction == null) {
-                            return;
-                        }
-                        player.openInventory(auction.getInv());
-                    }
+                if (mustCancelClick(player)) {
+                    return;
                 }
-                return;
-            
-        }else if (plugin.getServerShopManager().isShopInventory(eventInventory) || 
-            plugin.getServerShopManager().isShopInventory(clickedInventory)) {
-                plugin.getItemShopTransactions().processServerShopPurchase(e, player,item);
-                e.setCancelled(true);
-                return;
-
-        }  else {
-    
-            for (BlockShop s : plugin.getBlockShopManager().getShops().values()) {
-                Inventory shopInventory = s.getInventory();
-        
-                if (shopInventory.equals(clickedInventory) || shopInventory.equals(eventInventory)) {
-                    shopType = ShopType.BLOCKSHOP;
-                    shop = s;
-                }
-            }
+                plugin.getItemShopTransactions().processServerShopPurchase(e, player, item);
+                lastClick.put(player, System.currentTimeMillis());
+                break;
+            case AUCTION:
+                plugin.getAuctionManager().processAuctionInventoryClick(topInventory, player);
+                lastClick.put(player, System.currentTimeMillis());
+                break;
+            case AUCTION_MENU:
+                handleAuctionClick(e, player, item);
+                break;
+            case TRADE:
+                break;
+            default:
+                break;
         }
-
-        if (shopType == null) {
-            return;
-        }
-        e.setCancelled(true);
+    }
+    //#region handleShopClick
+    private void handleShopClick(InventoryClickEvent e, Player player, ItemStack item, ShopType shopType, Inventory inv) {
 
         if (!isValidItemShop(item)) {
+            return;
+        }
+        if (mustCancelClick(player)) {
             return;
         }
 
@@ -121,20 +90,99 @@ public class InventoryClickListener implements Listener{
 
         switch (shopType) {
             case BLOCKSHOP:
-                plugin.getItemShopTransactions().processBlockShopPurchase(e, player, item, shop);
+                BlockShop blockShop = plugin.getBlockShopManager().getByInventory(inv);
+                if (blockShop == null) {
+                    return;
+                }
+
+                plugin.getItemShopTransactions().processBlockShopPurchase(e, player, item, blockShop);
+                lastClick.put(player, System.currentTimeMillis());
                 break;
             case GLOBAL:
                 plugin.getItemShopTransactions().processGlobalShopPurchase(e, player, item);
+                lastClick.put(player, System.currentTimeMillis());
                 break;
             default:
                 break;
         }
     }
+    //#region handleAuctionClick
+    private void handleAuctionClick(InventoryClickEvent e, Player player, ItemStack item) {
+        if (item == null || item.getType().isAir()) return; // Verifica si el ítem es válido
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasLore()) {
+            return;
+        }
+        if (mustCancelClick(player)) {
+            return;
+        }
+
+        for (String s : meta.getLore()) {
+            String[] split = s.split(" ");
+            if (split.length < 2 || !split[0].contains("id:")) {
+                continue;
+            }
+
+            Auction auction = plugin.getAuctionManager().getAuctionByID(split[1]);
+            if (auction != null) {
+                player.openInventory(auction.getInv());
+            }
+        }
+        lastClick.put(player, System.currentTimeMillis());
+    }
+
+    //#region getShopType
+    private ShopType getShopType(InventoryClickEvent event, Inventory inv, Inventory inv2, Player clicker) {
+        
+        if (plugin.getGlobalShopManager().isGlobalShopInventory(inv) || plugin.getGlobalShopManager().isGlobalShopInventory(inv2)) {
+            event.setCancelled(true);
+            return ShopType.GLOBAL;
+        }
+        if (plugin.getAuctionManager().isAuctionInventory(inv) || plugin.getAuctionManager().isAuctionInventory(inv2)) {
+            event.setCancelled(true);
+            return ShopType.AUCTION;
+        }
+        if (plugin.getAuctionManager().isShopInventory(inv)|| plugin.getAuctionManager().isShopInventory(inv2)) {
+            event.setCancelled(true);
+            return ShopType.AUCTION_MENU;
+        }
+        if (plugin.getTradeManager().isTradeInvensory(inv) || plugin.getTradeManager().isTradeInvensory(inv2)) {
+            event.setCancelled(true);
+            return ShopType.TRADE;
+        }
+
+        if (plugin.getServerShopManager().isShopInventory(inv) || plugin.getServerShopManager().isShopInventory(inv2)) {
+            event.setCancelled(true);
+            return ShopType.SERVER;
+        }
+        for (BlockShop shop : plugin.getBlockShopManager().getShops().values()) {
+            if (shop.getInventory().equals(inv) || shop.getInventory().equals(inv2)) {
+                event.setCancelled(true);
+                return ShopType.BLOCKSHOP;
+            }
+        }
+
+        return null;
+    }
+    //#region misc
+    private boolean mustCancelClick(Player player) {
+        if (lastClick.containsKey(player)) {
+            long last = lastClick.get(player);
+            if (System.currentTimeMillis() - last < 1000) {
+                return true;
+            }
+        }
+        return false;
+    }
     private boolean isSeller(ItemStack item, Player player) {
-        return plugin.getItemShopManager().getSeller(item).equals(player.getUniqueId());
+        UUID seller = plugin.getItemShopManager().getSeller(item);
+        return seller != null && seller.equals(player.getUniqueId());
     }
 
     private boolean isValidItemShop(ItemStack item) {
+        if (item == null || item.getType().isAir()) {
+            return false;
+        }
         if (!item.hasItemMeta()) {
             return false;
         }

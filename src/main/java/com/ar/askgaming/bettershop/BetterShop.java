@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -119,8 +120,23 @@ public class BetterShop extends JavaPlugin {
 
         for (Trade trade : getTradeManager().getTrades()) {
             tradeManager.giveItem(trade, trade.getCreator());
-            
+            if (trade.getInventory().getViewers()!=null) {
+                trade.getInventory().getViewers().forEach(v -> 
+                    v.closeInventory()
+                );
+            }
         }
+        for (Auction auction : getAuctionManager().getAuctions().values()) {
+            List<HumanEntity> viewers = new ArrayList<>();
+            auction.getInventory().getViewers().forEach(v -> 
+                    viewers.add(v)
+            );
+            viewers.forEach(HumanEntity::closeInventory);
+            auction.getInventory().clear();
+        }
+        getAuctionManager().clearInventories();
+        getServerShopManager().clearInventories();
+        getGlobalShopManager().clearInventories();
     }
     public TradeManager getTradeManager() {
         return tradeManager;

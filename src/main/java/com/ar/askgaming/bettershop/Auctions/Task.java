@@ -19,13 +19,9 @@ public class Task extends BukkitRunnable{
     public void run() {
         for (Auction auction : auctionManager.getAuctions().values()) {
             long time = auction.getTimeLeft();
-            if (time <= 0) {
-                OfflinePlayer winner = auctionManager.getHighestBet(auction.getId());
-                if (winner != null) {
-                    auctionManager.processWinner(winner, auction);
-
-                } 
-                auctionManager.endAction(auction);
+            
+            if (time <= 0 && !auction.isHasEnded()) {
+                auctionManager.endAuction(auction);
             } else {
                 auction.setTimeLeft(time - 1000*60);
                 auctionManager.getConfig().set(auction.getId()+"", auction);
@@ -33,6 +29,4 @@ public class Task extends BukkitRunnable{
             }
         }
     }
-
-
 }

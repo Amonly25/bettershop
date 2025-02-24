@@ -25,7 +25,8 @@ public class PlayerQuitListener implements Listener{
         List<Trade> toRemove = new ArrayList<>();
         for (Trade trade : plugin.getTradeManager().getTrades()) {
             if (trade.getCreator().equals(player) || trade.getTarget().equals(player)) {
-                plugin.getTradeManager().giveItem(trade, player);
+                plugin.getTradeManager().giveItem(trade, trade.getCreator());
+                trade.getCreator().sendMessage(plugin.getLang().getFrom("trade.cancelled", trade.getCreator()));
                 toRemove.add(trade);
             }
         }
