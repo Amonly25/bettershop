@@ -28,8 +28,8 @@ public class InventoryClickListener implements Listener{
     @EventHandler()
     public void onClickInventory(InventoryClickEvent e) {
     
-        Inventory topInventory = e.getClickedInventory();
-        Inventory bottomInventory = e.getInventory();
+        Inventory clicked = e.getClickedInventory();
+        Inventory upper = e.getInventory();
 
         ItemStack item = e.getCurrentItem();
 
@@ -37,20 +37,18 @@ public class InventoryClickListener implements Listener{
             return;
         }
         Player player = (Player) e.getWhoClicked();
-        ShopType shopType = getShopType(e, topInventory, bottomInventory, player);
+        ShopType shopType = getShopType(e, upper, clicked, player);
         if (shopType == null) return;
 
         switch (shopType) {
             case BLOCKSHOP:
-                handleShopClick(e, player, item, ShopType.BLOCKSHOP, topInventory);
+                handleShopClick(e, player, item, ShopType.BLOCKSHOP, upper);
                 break;
             case GLOBAL:
-                handleShopClick(e, player, item, ShopType.GLOBAL, topInventory);    
+                handleShopClick(e, player, item, ShopType.GLOBAL, upper);    
                 break;
             case SERVER:
-                if (!plugin.getServerShopManager().isShopInventory(topInventory)) {
-                    return;
-                }
+
                 if (mustCancelClick(player)) {
                     return;
                 }
@@ -58,7 +56,7 @@ public class InventoryClickListener implements Listener{
                 lastClick.put(player, System.currentTimeMillis());
                 break;
             case AUCTION:
-                plugin.getAuctionManager().processAuctionInventoryClick(topInventory, player);
+                plugin.getAuctionManager().processAuctionInventoryClick(upper, player);
                 lastClick.put(player, System.currentTimeMillis());
                 break;
             case AUCTION_MENU:
@@ -132,33 +130,51 @@ public class InventoryClickListener implements Listener{
     }
 
     //#region getShopType
-    private ShopType getShopType(InventoryClickEvent event, Inventory inv, Inventory inv2, Player clicker) {
+    private ShopType getShopType(InventoryClickEvent event, Inventory upper, Inventory clicked, Player clicker) {
         
-        if (plugin.getGlobalShopManager().isGlobalShopInventory(inv) || plugin.getGlobalShopManager().isGlobalShopInventory(inv2)) {
+        if (plugin.getGlobalShopManager().isShopInventory(upper)) {
             event.setCancelled(true);
-            return ShopType.GLOBAL;
+            if (plugin.getGlobalShopManager().isGlobalShopInventory(clicked)) {
+                return ShopType.GLOBAL;
+            }
+            return null;
         }
-        if (plugin.getAuctionManager().isAuctionInventory(inv) || plugin.getAuctionManager().isAuctionInventory(inv2)) {
+        if (plugin.getAuctionManager().isAuctionInventory(upper)) {
             event.setCancelled(true);
-            return ShopType.AUCTION;
+            if (plugin.getAuctionManager().isAuctionInventory(clicked)) {
+                return ShopType.AUCTION;
+            }
+            return null;
         }
-        if (plugin.getAuctionManager().isShopInventory(inv)|| plugin.getAuctionManager().isShopInventory(inv2)) {
+        if (plugin.getAuctionManager().isShopInventory(upper)) {
             event.setCancelled(true);
-            return ShopType.AUCTION_MENU;
+            if (plugin.getAuctionManager().isShopInventory(clicked)) {
+                return ShopType.AUCTION_MENU;
+            }
+            return null;
         }
-        if (plugin.getTradeManager().isTradeInvensory(inv) || plugin.getTradeManager().isTradeInvensory(inv2)) {
+        if (plugin.getTradeManager().isTradeInvensory(upper)) {
             event.setCancelled(true);
-            return ShopType.TRADE;
+            if (plugin.getTradeManager().isTradeInvensory(clicked)) {
+                return ShopType.TRADE;
+            }
+            return null;
         }
 
-        if (plugin.getServerShopManager().isShopInventory(inv) || plugin.getServerShopManager().isShopInventory(inv2)) {
+        if (plugin.getServerShopManager().isShopInventory(upper)) {
             event.setCancelled(true);
-            return ShopType.SERVER;
+            if (plugin.getServerShopManager().isShopInventory(clicked)) {
+                return ShopType.SERVER;
+            }
+            return null;
         }
         for (BlockShop shop : plugin.getBlockShopManager().getShops().values()) {
-            if (shop.getInventory().equals(inv) || shop.getInventory().equals(inv2)) {
+            if (shop.getInventory().equals(upper)) {
                 event.setCancelled(true);
-                return ShopType.BLOCKSHOP;
+                if (shop.getInventory().equals(clicked)) {
+                    return ShopType.BLOCKSHOP;
+                }
+                return null;
             }
         }
 

@@ -58,6 +58,9 @@ public abstract class VirtualShopManager implements Listener {
     }
 
     protected void loadItemsFromConfig() {
+        inventories.clear();
+        items.clear();
+        
         List<String> keys = new ArrayList<>(config.getKeys(false));
         for (String key : keys) {
             Object obj = config.get(key);
