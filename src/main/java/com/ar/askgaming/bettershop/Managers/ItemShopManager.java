@@ -23,9 +23,8 @@ public class ItemShopManager{
     private NamespacedKey itemPrice;
     private NamespacedKey itemSeller;
 
-    private BetterShop plugin;
     public ItemShopManager(BetterShop plugin) {
-        this.plugin = plugin;
+
         itemShopLore = plugin.getConfig().getStringList("item_shop.lore");
 
         itemPrice = new NamespacedKey(plugin, "bettershop.item_price");

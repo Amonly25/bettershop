@@ -10,9 +10,8 @@ import com.ar.askgaming.bettershop.BetterShop;
 
 public class ShopLogger {
 
-    private BetterShop plugin;
     public ShopLogger(BetterShop main) {
-        plugin = main;
+
         enabled = main.getConfig().getBoolean("log", true);
 
         logFile = new File(main.getDataFolder(), "logs.txt");

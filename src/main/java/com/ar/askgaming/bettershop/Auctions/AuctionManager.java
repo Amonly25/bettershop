@@ -193,6 +193,7 @@ public class AuctionManager extends VirtualShopManager{
         return null;
     }
     //#region end auction
+    @SuppressWarnings("deprecation")
     private void processLosers(Auction auction) {
         for (String name : auction.getBets().keySet()) {
 
@@ -232,6 +233,7 @@ public class AuctionManager extends VirtualShopManager{
         config.set(auction.getId()+"", auction);
         saveConfig();
     }
+    @SuppressWarnings("deprecation")
     public OfflinePlayer getHighestBet(String id) {
         Auction auction = auctions.get(id);
         double highest = 0;

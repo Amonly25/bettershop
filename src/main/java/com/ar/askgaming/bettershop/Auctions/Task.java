@@ -1,6 +1,5 @@
 package com.ar.askgaming.bettershop.Auctions;
 
-import org.bukkit.OfflinePlayer;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.ar.askgaming.bettershop.BetterShop;
