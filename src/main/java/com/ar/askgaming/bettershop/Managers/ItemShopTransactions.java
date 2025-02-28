@@ -121,7 +121,8 @@ public class ItemShopTransactions {
         return false;
     }
     private boolean processRealisticPayment(Player buyer, UUID seller, double price) {
-        EconomyService economy = plugin.getRealisticEconomy().getEconomyService();
+
+        EconomyTransactions economy = plugin.getRealisticEconomy().getEconomyService();
 
         if (economy.getBalance(buyer.getUniqueId()) < price) {
             buyer.sendMessage(plugin.getLang().getFrom("shop.no_money", buyer));
