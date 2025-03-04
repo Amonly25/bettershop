@@ -1,6 +1,7 @@
 package com.ar.askgaming.bettershop.Managers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -32,6 +33,9 @@ public class ItemShopTransactions {
     public enum ShopType {
         BLOCKSHOP, GLOBAL, SERVER, AUCTION, AUCTION_MENU, TRADE
     }
+    private String getLang(String key, Player player) {
+        return plugin.getLang().getFrom(key, player);
+    }
 
     //#region cancelItem
     public void cancelShopItem(Player player, ItemStack item, ShopType shop) {
@@ -39,7 +43,7 @@ public class ItemShopTransactions {
         plugin.getItemShopManager().removeItemShopProperties(item);
         player.getInventory().addItem(item.clone());
         item.setAmount(0);
-        player.sendMessage(plugin.getLang().getFrom("shop.item_cancelled", player));
+        player.sendMessage(getLang("shop.item_cancelled", player));
     }
     //#region blockshop
     public void processBlockShopPurchase(InventoryClickEvent e, Player player, ItemStack item, BlockShop shop) {
@@ -71,11 +75,11 @@ public class ItemShopTransactions {
         String sellerName = seller == null ? "Server" : Bukkit.getOfflinePlayer(seller).getName();
 
         if (!processPayment(buyer, seller, price)) {
-            buyer.sendMessage(plugin.getLang().getFrom("misc.error_buying", buyer));
+            buyer.sendMessage(getLang("misc.error_buying", buyer));
             return;
         }
     
-        buyer.sendMessage(plugin.getLang().getFrom("shop.buy", buyer).replace("{amount}", amount+"").replace("{price}", price+""));
+        buyer.sendMessage(getLang("shop.buy", buyer).replace("{amount}", amount+"").replace("{price}", price+""));
         plugin.getShopLogger().log("Player " + buyer.getName() + " bought " + amount + " of " + item.getType().name() + " for " + price + " from " + sellerName);
 
         ItemStack clonedItem = item.clone();
@@ -122,10 +126,10 @@ public class ItemShopTransactions {
     }
     private boolean processRealisticPayment(Player buyer, UUID seller, double price) {
 
-        EconomyTransactions economy = plugin.getRealisticEconomy().getEconomyService();
+        EconomyService economy = plugin.getRealisticEconomy().getEconomyService();
 
         if (economy.getBalance(buyer.getUniqueId()) < price) {
-            buyer.sendMessage(plugin.getLang().getFrom("shop.no_money", buyer));
+            buyer.sendMessage(getLang("shop.no_money", buyer));
             return false;
         }
 
@@ -136,7 +140,7 @@ public class ItemShopTransactions {
         if (success && seller != null) {
             Player sellerPlayer = Bukkit.getPlayer(seller);
             if (sellerPlayer != null) {
-                sellerPlayer.sendMessage(plugin.getLang().getFrom("shop.sell", sellerPlayer)
+                sellerPlayer.sendMessage(getLang("shop.sell", sellerPlayer)
                     .replace("{price}", String.valueOf(price))
                     .replace("{player}", buyer.getName()));
             }
@@ -147,7 +151,7 @@ public class ItemShopTransactions {
 
     private boolean processVaultPayment(Player buyer, UUID seller, double price) {
         if (plugin.getEconomy().getBalance(buyer) < price) {
-            buyer.sendMessage(plugin.getLang().getFrom("shop.no_money", buyer));
+            buyer.sendMessage(getLang("shop.no_money", buyer));
             return false;
         }
         plugin.getEconomy().withdrawPlayer(buyer, price);
@@ -156,7 +160,7 @@ public class ItemShopTransactions {
             plugin.getEconomy().depositPlayer(sellerPlayer, price);
             Player player = Bukkit.getPlayer(seller);
             if (player != null) {
-                player.sendMessage(plugin.getLang().getFrom("shop.sell", player).replace("{price}", price + "").replace("{player}", buyer.getName()));
+                player.sendMessage(getLang("shop.sell", player).replace("{price}", price + "").replace("{player}", buyer.getName()));
             }
         }
         return true;
@@ -195,13 +199,13 @@ public class ItemShopTransactions {
         Material itemType = item.getType();
         
         if (!currentPrices.containsKey(itemType)) {
-            player.sendMessage("Este ítem no se puede vender en la tienda.");
+            player.sendMessage(getLang("server_shop.not_in_shop", player));
             return;
         }
         
         double pricePerItem = currentPrices.get(itemType);
         if (pricePerItem <= 0) {
-            player.sendMessage("El precio de este ítem es inválido.");
+            player.sendMessage(getLang("server_shop.wrong_price", player));
             return;
         }
         
@@ -224,20 +228,26 @@ public class ItemShopTransactions {
         }
         
         if (totalAmount == 0) {
-            player.sendMessage("No tienes suficientes ítems para vender.");
+            player.sendMessage(getLang("server_shop.no_items", player));
             return;
         }
         
         double totalPayment = totalAmount * pricePerItem;
         
-        if (processPayment(null, player.getUniqueId(), totalPayment)){
-            for (ItemStack toRemove : itemsToRemove) {
-                player.getInventory().removeItem(toRemove);
-            }
+        Map<Integer, ItemStack> removedItems = new HashMap<>();
+        
+        for (ItemStack toRemove : itemsToRemove) {
+            removedItems.putAll(player.getInventory().removeItem(toRemove));
+        }
+
+        if (removedItems.isEmpty() && processPayment(null, player.getUniqueId(), totalPayment)) {
             plugin.getServerShopManager().updateStats(item, totalAmount);
-            player.sendMessage("Vendiste " + totalAmount + " de " + itemType + " por " + totalPayment + " monedas.");
+            player.sendMessage(getLang("server_shop.on_sell", player).replace("{amount}",  totalAmount + "").replace("{item}", itemType+"").replace("{price}", totalPayment + ""));
             plugin.getShopLogger().log("Player " + player.getName() + " sold " + totalAmount + " of " + itemType + " for " + totalPayment);
-        }  
+        } else {
+            // En caso de error, devolver los ítems al jugador
+            player.sendMessage(getLang("server_shop.invalid_item", player));
+        } 
     }
   
 }

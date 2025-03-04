@@ -58,6 +58,13 @@ global_shop:
 
 server_shop:
   daily_price_adjustment: "&aA new daily price adjustment has been set for the server shop!"
+  error: "&cError selling, invalid item!"
+  not_in_shop: "&cThe item is not in the server shop!"
+  wrong_price: "&cIncorrect price, it must be greater than 0!"
+  no_items: "&cThere are no items in the server shop!"
+  invalid_item: "&cInvalid item, it cannot be sold!"
+  on_sell: "&aYou have sold {amount} {item} for {price}!"
+
 
 help:
   - "&7View online store: &aaskgaming.com.ar/store/"
