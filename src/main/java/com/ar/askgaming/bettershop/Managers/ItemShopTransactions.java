@@ -107,7 +107,7 @@ public class ItemShopTransactions {
 
         if (plugin.getRealisticEconomy()!= null) {
             if (buyer == null ) {
-                return plugin.getRealisticEconomy().getServerBank().withdrawFromServerToPlayer(seller, price);
+                return plugin.getRealisticEconomy().getServerBank().transferWithPlayer(seller, price, true);
             }
             return processRealisticPayment(buyer, seller, price);
 
@@ -135,7 +135,7 @@ public class ItemShopTransactions {
 
         boolean success = seller != null
             ? economy.playerPayPlayer(buyer.getUniqueId(), seller, price)
-            : plugin.getRealisticEconomy().getServerBank().depositFromPlayerToServer(buyer.getUniqueId(), price);
+            : plugin.getRealisticEconomy().getServerBank().transferWithPlayer(buyer.getUniqueId(), price, false);
 
         if (success && seller != null) {
             Player sellerPlayer = Bukkit.getPlayer(seller);
